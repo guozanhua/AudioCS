@@ -17,7 +17,7 @@ class ClientDataConsumer(threading.Thread):
             participants = self.importQueue.get()  #得到的是列表[Participant]
             #TODO: DEAL WITH DATA AND USE UI_CONTROLLER TO UPDATE UI
 
-            
+
 
     def stop(self):
         self.shouldStop = True
