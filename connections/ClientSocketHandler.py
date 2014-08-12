@@ -1,4 +1,4 @@
-#coding=utf-8
+#coding:utf-8
 '''客户端Socket相关的东西'''
 import threading
 import socket
@@ -21,7 +21,7 @@ class ClientSocketReceiver(threading.Thread):
             data, srcAddr = self.udpClientServ.recvfrom(self.BUFFERSIZE)
             print 'Received data from %s' %str(srcAddr[0])
 
-            #TODO: DO SOMETHING!
+
             participants = cPickle.loads(data)  #INFO:收到的是所有人的数据
             print participants
             self.exportQueue.put(participants)
