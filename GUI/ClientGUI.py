@@ -6,6 +6,51 @@ from PyQt4 import QtGui, QtCore
 from Widgets.MetreHandLabel import MetreHandLabel
 from GUI.Widgets.matplotlibWidgetFile import matplotlibWidget
 import random
+import networkx as nx
+
+class ClientSummaryGUI(QtGui.QWidget):
+
+    def __init__(self, parent=None):
+        QtGui.QWidget.__init__(self, parent)
+        self.setGeometry(350, 350, 500, 380)
+        self.move_offset = None
+
+        self.figure_widget = matplotlibWidget(self)
+        self.figure_widget.setGeometry(0, 0, 500, 380)
+
+        self.graph = None
+
+        self.setWindowFlags(QtCore.Qt.FramelessWindowHint|QtCore.Qt.WindowStaysOnTopHint)  # Frameless window
+        self.setAttribute(QtCore.Qt.WA_TranslucentBackground, True)  #Translucent window
+
+        g = nx.Graph()
+        g.add_edge('1', '2')
+        g.add_edge('1', '3')
+        g.add_edge('3', '2')
+        self.draw_graph(g)
+
+
+
+    def draw_graph(self, graph=None):
+        '''使用networkx绘制网络图 若使用None参数则绘制self.graph'''
+        if graph is None:
+            graph = self.graph
+        nx.draw(graph, ax=self.figure_widget.canvas.ax)
+
+    def mousePressEvent(self, event):
+        self.move_offset = event.pos()
+
+    def mouseMoveEvent(self, event):
+        if event.buttons() and QtCore.Qt.LeftButton:
+            diff = event.pos() - self.move_offset
+            new_pos = self.pos() + diff
+            self.move(new_pos)
+
+    def mouseDoubleClickEvent(self, qMouseEvent):
+        #TODO: 在一定时间内连续双击，关闭整个UI程序(QUIT?)
+        qMouseEvent.accept()
+        self.close()
+
 
 class ClientUserGUI(QtGui.QWidget):
     def __init__(self, parent=None):
@@ -32,6 +77,14 @@ class ClientUserGUI(QtGui.QWidget):
         # 在时间序列里把新的情感状态及对应的时间加进去
         self.emo_times.append(timestamp)
         self.emo_values.append(value)
+        print '(time, value) = (%d, %f) appended.' % (timestamp, value)
+
+    def plot_timeline(self):
+        # 绘制时间线
+        self.figure_widget.canvas.ax.clear()
+        self.figure_widget.canvas.ax.plot(self.emo_times, self.emo_values, 'r-')
+        self.figure_widget.canvas.draw()
+        self.figure_widget.setAlpha(0.0)
 
     def init_ui(self):
         self.setGeometry(300, 300, 640, 480)
@@ -47,7 +100,6 @@ class ClientUserGUI(QtGui.QWidget):
         #              QtGui.qApp, QtCore.SLOT('quit()'))
         self.plot_button.clicked.connect(self.plot)
 
-
     def test_rotation(self):
         self.hand_image.rotate(45)
 
@@ -57,9 +109,6 @@ class ClientUserGUI(QtGui.QWidget):
         print 'new angle = %f' % angle
         #TODO:有空搞点延迟效果
         self.hand_image.rotate_to(angle)
-
-
-
 
     def mousePressEvent(self, qMouseEvent):
         self.move_offset = qMouseEvent.pos()
@@ -89,8 +138,11 @@ class ClientUserGUI(QtGui.QWidget):
 
 if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
-    qb = ClientUserGUI()
+    #qb = ClientUserGUI()
+    qb = ClientSummaryGUI()
     qb.show()
+    qa = ClientUserGUI()
+    qa.show()
     sys.exit(app.exec_())
 
 

@@ -69,7 +69,7 @@ class ClientUIController(QtGui.QMainWindow):
             self.client_UIs[ip].rotate_to_value(emo_value)
             timestamp = p.latest_timestamp
             self.client_UIs[ip].append_emo_state(timestamp, emo_value)
-            
+            self.client_UIs[ip].plot_timeline()
             #TODO:...SUMMARY GUI
 
 
