@@ -19,4 +19,5 @@ AudioCS
 ***
 
 ##输出
-呈现给用户的是一套可视化UI，目前还在制作中
+呈现给用户的是一套可视化UI，使用PyQt4 + matplotlib + networkx
+简直丑到爆！
