@@ -51,6 +51,8 @@ class DataProcessor(threading.Thread):
             timestamp = eveContent.timestamp
             ip = eveContent.senderip
             emoState = clsContent.result
+            posRate = clsContent.positive_rate
+
             posdiff = 0
             negdiff = 0
             if emoState == ClassifierData.RESULT_POSITIVE:
@@ -62,12 +64,17 @@ class DataProcessor(threading.Thread):
             if not self.has_participant(ip):
                 #如果没有这个参与者，则新建一条记录
                 participant = Participant(ip, duration, posdiff, negdiff)
+                participant.latest_pos_val = posRate  # 判断为positive的rate
                 self.participants[ip] = participant
             else:
                 #如果有记录，则在之前的基础上加上时间和相关的东西
                 self.participants[ip].totalTime += duration
                 self.participants[ip].posCount += posdiff
                 self.participants[ip].negCount += negdiff
+
+            self.participants[ip].latest_pos_val = posRate  # 判断为positive的rate
+            self.participants[ip].latest_timestamp = timestamp  #消息发送时间
+            self.participants[ip].ip = ip   #IP地址还是要的
 
             if lastIP is not None:
                 #构造Conversation

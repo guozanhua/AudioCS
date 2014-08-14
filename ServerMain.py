@@ -12,7 +12,7 @@ d.start()
 s_send = ServerSocketHandler.ServerUDPSender(outQueue)
 s_send.start()
 
-sleep(1200)
+sleep(4800)
 
 s.stop()
 d.stop()
