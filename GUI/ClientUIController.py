@@ -1,6 +1,6 @@
 #coding:utf-8
 '''GUI总管大臣，管理UI的东西'''
-from ClientGUI import ClientUserGUI
+from ClientGUI import ClientUserGUI, ClientSummaryGUI
 from connections import ClientSocketHandler, ClientDataConsumer
 from PyQt4 import QtGui
 import sys
@@ -11,7 +11,7 @@ class ClientUIController(QtGui.QMainWindow):
         QtGui.QMainWindow.__init__(self)
         self.num_clients = 0
         self.client_UIs = {}    # One UI for each user, {IP, ui}
-        self.summary_UI = None  # Summary UI
+        self.summary_UI = ClientSummaryGUI()  # Summary UI
 
         self.inQueue = Queue.Queue()
         self.c = None
@@ -23,6 +23,9 @@ class ClientUIController(QtGui.QMainWindow):
         self.setCentralWidget(self.infoLabel)
 
         self.init_threads()
+
+        self.summary_UI.show()
+
 
     def init_threads(self):
         # 开启各种线程
@@ -70,7 +73,9 @@ class ClientUIController(QtGui.QMainWindow):
             timestamp = p.latest_timestamp
             self.client_UIs[ip].append_emo_state(timestamp, emo_value)
             self.client_UIs[ip].plot_timeline()
-            #TODO:...SUMMARY GUI
+        #TODO:...SUMMARY GUI
+        self.summary_UI.make_graph(participants)
+        self.summary_UI.draw_graph()
 
 
 

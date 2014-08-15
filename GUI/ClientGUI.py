@@ -8,34 +8,62 @@ from GUI.Widgets.matplotlibWidgetFile import matplotlibWidget
 import random
 import networkx as nx
 
+COLOR_MAP = ['#bf0c10', '#e1dd07', '#8cc12d', '#8fc43f']  # 红色：191,12,26 黄色：255,221,7 蓝色：140,193,45 绿色：143,196,63
+
 class ClientSummaryGUI(QtGui.QWidget):
 
     def __init__(self, parent=None):
         QtGui.QWidget.__init__(self, parent)
         self.setGeometry(350, 350, 500, 380)
+        self.setStyleSheet("background-color:#3c4043")
         self.move_offset = None
 
         self.figure_widget = matplotlibWidget(self)
         self.figure_widget.setGeometry(0, 0, 500, 380)
 
-        self.graph = None
+        self.graph = nx.DiGraph()
 
         self.setWindowFlags(QtCore.Qt.FramelessWindowHint|QtCore.Qt.WindowStaysOnTopHint)  # Frameless window
         self.setAttribute(QtCore.Qt.WA_TranslucentBackground, True)  #Translucent window
 
-        g = nx.Graph()
-        g.add_edge('1', '2')
-        g.add_edge('1', '3')
-        g.add_edge('3', '2')
-        self.draw_graph(g)
+        #g = nx.complete_graph(5)
+        #self.draw_graph(g)
+
+    def have_node(self, name):
+        return name in self.graph.nodes()
+
+    def make_graph(self, participants):
+        # 根据participants绘制网络图
+        count = 0
+        for ip, p in participants.iteritems():
+            node_weight = p.posCount + p.negCount
+            self.graph.add_node(ip, weight=node_weight, color=COLOR_MAP[count%4])     # Node attribute `weight`
+            for c_ip, conv in p.conversations.iteritems():
+                conv_count = p.get_conv_count(c_ip)
+                self.graph.add_edge(p, c_ip, weight=conv_count, color=COLOR_MAP[count%4])
+            count += 1
+
+        return self.graph
 
 
-
-    def draw_graph(self, graph=None):
+    def draw_graph(self):
         '''使用networkx绘制网络图 若使用None参数则绘制self.graph'''
-        if graph is None:
-            graph = self.graph
-        nx.draw(graph, ax=self.figure_widget.canvas.ax)
+
+
+        # get node size and color
+        node_size = [self.graph.node[n]['weight']*100.0 for n in self.graph.nodes_iter()]
+        print node_size
+        node_color = [self.graph.node[n]['color'] for n in self.graph.nodes_iter()]
+
+        # get edge size and color
+        #edge_size = [self.graph.edge[s][d]['weight'] for s,d in self.graph.nodes_iter()]
+        edge_color = [self.graph.edge[s][d]['color'] for s,d in self.graph.edges_iter()]
+        pos = nx.spring_layout(self.graph)
+        nx.draw_networkx(self.graph, pos=pos, ax=self.figure_widget.canvas.ax, node_size=node_size, node_color=node_color
+                 , edge_color=edge_color)
+        # nx.draw_networkx(self.graph, pos, ax=self.figure_widget.canvas.ax)
+        self.figure_widget.canvas.draw()
+
 
     def mousePressEvent(self, event):
         self.move_offset = event.pos()
@@ -142,7 +170,7 @@ if __name__ == '__main__':
     qb = ClientSummaryGUI()
     qb.show()
     qa = ClientUserGUI()
-    qa.show()
+    #qa.show()
     sys.exit(app.exec_())
 
 

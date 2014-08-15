@@ -76,8 +76,8 @@ class DataProcessor(threading.Thread):
             self.participants[ip].latest_timestamp = timestamp  #消息发送时间
             self.participants[ip].ip = ip   #IP地址还是要的
 
-            if lastIP is not None:
-                #构造Conversation
+            if (lastIP is not None) and (lastIP != ip):
+                #构造Conversation (排除上个人的ip是自己的情况！)
                 convContent = ConvContent(lastIP, timestamp, duration, emoState)
                 if not self.participants[ip].conversations.has_key(lastIP):
                     self.participants[ip].conversations[lastIP] = []  #新建一个列表，存放与这个人的conversations
@@ -87,6 +87,8 @@ class DataProcessor(threading.Thread):
             #exportQueue里面是完整的participants数据
             self.exportQueue.put(self.participants)
 
+
+            lastIP = ip     # Update lastIP to current ip
             #print str(self.participants)
 
 

@@ -25,6 +25,9 @@ class MplCanvas(FigureCanvas):
         self.fig.patch.set_alpha(value)
         self.ax.patch.set_alpha(value)
 
+    def set_face_color(self, color):
+        self.fig.set_facecolor(color)  # "#000000"
+
 class matplotlibWidget(QtGui.QWidget):
 
     def __init__(self, parent = None):
@@ -45,4 +48,7 @@ class matplotlibWidget(QtGui.QWidget):
 
     def setAlpha(self, value):
         self.canvas.setAlpha(value)
+
+    def set_face_color(self, color):
+        self.canvas.set_face_color(color)
 

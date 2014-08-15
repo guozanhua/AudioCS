@@ -14,6 +14,7 @@ class Participant:
         if conversations is None:
             self.conversations = {}  #字典型，{participantIP, [ConvContent]}
 
+
     def get_conv_count(self, partcipantIP):
         '''与指定IP地址人员的会话次数'''
         if not self.conversations.has_key(partcipantIP):
