@@ -27,8 +27,8 @@ class ClientUIController(QtGui.QWidget):
 
         self.vbox.addStretch(2)
         self.infoLabel = QtGui.QLabel()
-        socket_text = socket.gethostbyname_ex(socket.gethostname())
-        self.infoLabel.setText(str(socket_text))
+        self.socket_text = str(socket.gethostbyname_ex(socket.gethostname()))
+        self.infoLabel.setText(self.socket_text)
         self.vbox.addWidget(self.infoLabel)
         self.vbox.addStretch(2)
 
@@ -51,8 +51,9 @@ class ClientUIController(QtGui.QWidget):
 
     def init_threads(self):
         # 开启各种线程
-        text, ok = QtGui.QInputDialog.getText(self, 'Input server ip address', 'default=192.168.1.200'
-                                              , text='192.168.1.200')
+
+        text, ok = QtGui.QInputDialog.getText(self, 'Input your current ip address'
+                                              , self.socket_text , text='192.168.1.200')
         if ok:
             ip = text
         else:
