@@ -52,3 +52,8 @@ class matplotlibWidget(QtGui.QWidget):
     def set_face_color(self, color):
         self.canvas.set_face_color(color)
 
+    def clear(self):
+        self.canvas.ax.clear()
+        self.canvas.ax.patch.set_alpha(0.0)
+
+

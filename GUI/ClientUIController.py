@@ -2,13 +2,19 @@
 '''GUI总管大臣，管理UI的东西'''
 from ClientGUI import ClientUserGUI, ClientSummaryGUI
 from connections import ClientSocketHandler, ClientDataConsumer
-from PyQt4 import QtGui
+from PyQt4 import QtGui, QtCore
 import sys
 import Queue
+import socket
 
-class ClientUIController(QtGui.QMainWindow):
+class ClientUIController(QtGui.QWidget):
+    def __del__(self):
+        self.c.stop()
+        self.data_consumer.stop()
+        self.data_consumer.quit()
+
     def __init__(self):
-        QtGui.QMainWindow.__init__(self)
+        QtGui.QWidget.__init__(self)
         self.num_clients = 0
         self.client_UIs = {}    # One UI for each user, {IP, ui}
         self.summary_UI = ClientSummaryGUI()  # Summary UI
@@ -17,19 +23,41 @@ class ClientUIController(QtGui.QMainWindow):
         self.c = None
         self.data_consumer = None
 
+        self.vbox = QtGui.QVBoxLayout()
 
-        self.infoLabel  = QtGui.QLabel()
-        self.infoLabel.setText('Blabla...')
-        self.setCentralWidget(self.infoLabel)
+        self.vbox.addStretch(2)
+        self.infoLabel = QtGui.QLabel()
+        socket_text = socket.gethostbyname_ex(socket.gethostname())
+        self.infoLabel.setText(str(socket_text))
+        self.vbox.addWidget(self.infoLabel)
+        self.vbox.addStretch(2)
+
+        self.setLayout(self.vbox)
 
         self.init_threads()
 
         self.summary_UI.show()
 
+    def mouseDoubleClickEvent(self, *args, **kwargs):
+        print 'QUIT...'
+        for ip, client in self.client_UIs.iteritems():
+            client.close()
+        self.c.stop()
+        self.data_consumer.stop()
+        self.summary_UI.close()
+        self.close()
+        QtCore.QCoreApplication.instance().quit()
+
 
     def init_threads(self):
         # 开启各种线程
-        ip = '127.0.0.1'
+        text, ok = QtGui.QInputDialog.getText(self, 'Input server ip address', 'default=192.168.1.200'
+                                              , text='192.168.1.200')
+        if ok:
+            ip = text
+        else:
+            ip = '192.168.1.200'
+        print 'Host IP address set to: %s' %ip
         self.c = ClientSocketHandler.ClientSocketReceiver(self.inQueue, ip)     # Socket Thread
 
         self.data_consumer = ClientDataConsumer.ClientQtDataConsumer(self.inQueue)
@@ -45,7 +73,7 @@ class ClientUIController(QtGui.QMainWindow):
 
     def add_client(self, ip):
         # 增加一个客户端的UI
-        self.client_UIs[ip] = ClientUserGUI()
+        self.client_UIs[ip] = ClientUserGUI(ip=ip)
         self.client_UIs[ip].show()
         #sys.exit(self.app.exec_())
         #self.app.exec_()
@@ -78,10 +106,11 @@ class ClientUIController(QtGui.QMainWindow):
         self.summary_UI.draw_graph()
 
 
-
-
-if __name__ == '__main__':
+def run_me():
     app = QtGui.QApplication(sys.argv)
     ctrlGUI = ClientUIController()
     ctrlGUI.show()
     sys.exit(app.exec_())
+
+if __name__ == '__main__':
+    run_me()

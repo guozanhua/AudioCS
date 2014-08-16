@@ -7,8 +7,11 @@ from Widgets.MetreHandLabel import MetreHandLabel
 from GUI.Widgets.matplotlibWidgetFile import matplotlibWidget
 import random
 import networkx as nx
+from GUI import nx_custom_layout
+from time import sleep
 
-COLOR_MAP = ['#bf0c10', '#e1dd07', '#8cc12d', '#8fc43f']  # 红色：191,12,26 黄色：255,221,7 蓝色：140,193,45 绿色：143,196,63
+COLOR_MAP_NODE = ['#bf0c10', '#e1dd07', '#8cc12d', '#8fc43f']  # 红色：191,12,26 黄色：255,221,7 蓝色：140,193,45 绿色：143,196,63
+COLOR_MAP_EDGE = ['#7a7c7b', '#77787a', '#6f6f6f', '#505050', '#56575b', '#6f6f6f']  # 边的颜色，各种灰色
 
 class ClientSummaryGUI(QtGui.QWidget):
 
@@ -21,10 +24,13 @@ class ClientSummaryGUI(QtGui.QWidget):
         self.figure_widget = matplotlibWidget(self)
         self.figure_widget.setGeometry(0, 0, 500, 380)
 
-        self.graph = nx.DiGraph()
+        self.graph = nx.DiGraph()  # DiGraph
 
         self.setWindowFlags(QtCore.Qt.FramelessWindowHint|QtCore.Qt.WindowStaysOnTopHint)  # Frameless window
         self.setAttribute(QtCore.Qt.WA_TranslucentBackground, True)  #Translucent window
+
+        self.avg_count = 1.0  # 平均每个人说话的次数
+        self.avg_edge_count = 1.0
 
         #g = nx.complete_graph(5)
         #self.draw_graph(g)
@@ -32,36 +38,70 @@ class ClientSummaryGUI(QtGui.QWidget):
     def have_node(self, name):
         return name in self.graph.nodes()
 
+    def get_ip_pos(self, ip):
+        # 根据ip查找节点序号
+        return self.graph.nodes().index(ip)
+
+
     def make_graph(self, participants):
         # 根据participants绘制网络图
         count = 0
+        total = 0
+        edge_count = 0
+        edge_total = 0
         for ip, p in participants.iteritems():
+
             node_weight = p.posCount + p.negCount
-            self.graph.add_node(ip, weight=node_weight, color=COLOR_MAP[count%4])     # Node attribute `weight`
+            total += node_weight
+            self.graph.add_node(ip, weight=node_weight, color=COLOR_MAP_NODE[count%4])     # Node attribute `weight`
             for c_ip, conv in p.conversations.iteritems():
                 conv_count = p.get_conv_count(c_ip)
-                self.graph.add_edge(p, c_ip, weight=conv_count, color=COLOR_MAP[count%4])
+                edge_count += 1
+                edge_total += conv_count
+                self.graph.add_edge(ip, c_ip, weight=conv_count, color=COLOR_MAP_EDGE[count%4])
             count += 1
-
+        self.avg_count = float(total)/float(count)
+        if edge_count != 0:
+            self.avg_edge_count = float(edge_total) /float(edge_count)
         return self.graph
 
 
     def draw_graph(self):
         '''使用networkx绘制网络图 若使用None参数则绘制self.graph'''
-
+        print self.graph.nodes()
 
         # get node size and color
-        node_size = [self.graph.node[n]['weight']*100.0 for n in self.graph.nodes_iter()]
+        node_size = [self.graph.node[n]['weight']*500.0/self.avg_count for n in self.graph.nodes_iter()]
+        node_size_2 = [self.graph.node[n]['weight']*1000.0/self.avg_count for n in self.graph.nodes_iter()]
+        node_size_3 = [self.graph.node[n]['weight']*1500.0/self.avg_count for n in self.graph.nodes_iter()]
         print node_size
         node_color = [self.graph.node[n]['color'] for n in self.graph.nodes_iter()]
 
         # get edge size and color
-        #edge_size = [self.graph.edge[s][d]['weight'] for s,d in self.graph.nodes_iter()]
+        edge_size = [self.graph.edge[s][d]['weight']*5.0/self.avg_edge_count for s,d in self.graph.edges_iter()]
+        print edge_size
         edge_color = [self.graph.edge[s][d]['color'] for s,d in self.graph.edges_iter()]
-        pos = nx.spring_layout(self.graph)
-        nx.draw_networkx(self.graph, pos=pos, ax=self.figure_widget.canvas.ax, node_size=node_size, node_color=node_color
-                 , edge_color=edge_color)
-        # nx.draw_networkx(self.graph, pos, ax=self.figure_widget.canvas.ax)
+
+        pos = nx_custom_layout.nx_custom_layout(self.graph)
+
+        self.figure_widget.clear()
+        # nx.draw_networkx(self.graph, pos=pos, ax=self.figure_widget.canvas.ax, node_size=node_size, node_color=node_color
+        #          , edge_color=edge_color)
+        nx.draw_networkx_nodes(self.graph, pos, node_size=node_size, node_color=node_color,
+                               ax=self.figure_widget.canvas.ax, linewidths=0.0, alpha=0.25)
+
+        nx.draw_networkx_nodes(self.graph, pos, node_size=node_size_2, node_color=node_color,
+                               ax=self.figure_widget.canvas.ax, linewidths=0.0, alpha=0.25)
+
+        nx.draw_networkx_nodes(self.graph, pos, node_size=node_size_3, node_color=node_color,
+                               ax=self.figure_widget.canvas.ax, linewidths=0.0, alpha=0.50)
+
+        nx.draw_networkx_labels(self.graph, pos, ax=self.figure_widget.canvas.ax)
+        for i in range(0, len(edge_size)):
+            #Draw edge with different width
+            nx.draw_networkx_edges(self.graph, pos, width=edge_size[i], edge_color=edge_color[i],
+                                   ax=self.figure_widget.canvas.ax, edgelist=[self.graph.edges()[i]])
+
         self.figure_widget.canvas.draw()
 
 
@@ -81,7 +121,7 @@ class ClientSummaryGUI(QtGui.QWidget):
 
 
 class ClientUserGUI(QtGui.QWidget):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, ip='None'):
         QtGui.QWidget.__init__(self, parent)
         self.move_offset = 0
         self.emo_times = []    # 情绪状态发生时间的序列
@@ -93,7 +133,7 @@ class ClientUserGUI(QtGui.QWidget):
 
         self.figure_widget = matplotlibWidget(self)
 
-        self.plot_button = QtGui.QPushButton('Plot', self)
+        self.plot_button = QtGui.QPushButton(ip, self)
         self.plot_button.raise_()
 
         self.hand_image = MetreHandLabel(self, (423,118))
@@ -120,13 +160,13 @@ class ClientUserGUI(QtGui.QWidget):
         self.setAttribute(QtCore.Qt.WA_TranslucentBackground, True)  #Translucent window
 
         self.bkg_image_label.setGeometry(0, 0, 542, 121)
-        self.plot_button.setGeometry(74, 10, 64, 35)
+        self.plot_button.setGeometry(74, 10, 100, 35)
         self.figure_widget.setGeometry(20, 60, 280, 60)
         self.hand_image.setGeometry(361, 58, 120, 120)
 
         # self.connect(self.quit, QtCore.SIGNAL('clicked()'),
         #              QtGui.qApp, QtCore.SLOT('quit()'))
-        self.plot_button.clicked.connect(self.plot)
+        self.plot_button.clicked.connect(self.plot_button_clicked)
 
     def test_rotation(self):
         self.hand_image.rotate(45)
@@ -136,6 +176,11 @@ class ClientUserGUI(QtGui.QWidget):
         angle = (f_value - 0.5) * 180.0
         print 'new angle = %f' % angle
         #TODO:有空搞点延迟效果
+        for i in range(5, 0, -1):
+            swing_angle = (random.random() - 0.5) * i * 2
+            self.hand_image.rotate_to(angle + swing_angle)
+            sleep(0.05)
+
         self.hand_image.rotate_to(angle)
 
     def mousePressEvent(self, qMouseEvent):
@@ -155,13 +200,14 @@ class ClientUserGUI(QtGui.QWidget):
 
 
 
-    def plot(self):
-        randomNumbers = random.sample(range(0, 10), 10)
-        self.figure_widget.canvas.ax.clear()
-        self.figure_widget.canvas.ax.plot(randomNumbers)
-        self.figure_widget.canvas.draw()
-        self.figure_widget.setAlpha(0.0)
-        self.test_rotation()
+    def plot_button_clicked(self):
+        # randomNumbers = random.sample(range(0, 10), 10)
+        # self.figure_widget.canvas.ax.clear()
+        # self.figure_widget.canvas.ax.plot(randomNumbers)
+        # self.figure_widget.canvas.draw()
+        # self.figure_widget.setAlpha(0.0)
+        # self.test_rotation()
+        self.plot_button.hide()
 
 
 if __name__ == '__main__':

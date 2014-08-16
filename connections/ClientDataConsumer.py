@@ -26,6 +26,10 @@ class ClientQtDataConsumer(QtCore.QThread):
 
     def stop(self):
         self.shouldStop = True
+        print 'ClientQtDataConsumer quit'
+        #quit()
+
+
 
 
 class ClientDataConsumer(threading.Thread):

@@ -37,28 +37,19 @@ class ServerUDPReceiver(threading.Thread):
             print 'length %d, data type %d' %(len(data), data_type)
             timestamp = time.time()
 
-            #TODO: THIS IS　ＴＥＳＴ　CODE
-            #print str(data)
-            # if data_type == DataTypeHandler.DATA_TYPE_CLS:
-            #     osc_msg = osc_message.OscMessage(data)
-            #     print(osc_msg.parameters)
-            # elif data_type == DataTypeHandler.DATA_TYPE_BIN:
-            #     osc_msg = osc_message.OscMessage(data)
-            #     print(osc_msg.parameters)
-
-            #TODO: REMOVE THE `CONTINUE` BELOW !!!
             #continue
             #Push data to exportQueue
+
             if data_type == DataTypeHandler.DATA_TYPE_BIN:
                 osc_msg = osc_message.OscMessage(data)
                 modelData = StreamDataParser.parse_stream_to_model(osc_msg, srcAddr[0], timestamp)#BinaryData.BinaryData(timestamp, srcAddr[0], data)
             elif data_type == DataTypeHandler.DATA_TYPE_CLS:
                 osc_msg = osc_message.OscMessage(data)
                 modelData = BooleanClsParser.parse_cls_to_clsdata(osc_msg, timestamp, srcAddr[0])
-                #modelData = ClassifierData.ClassifierData(timestamp, srcAddr[0], data)
+
             elif data_type == DataTypeHandler.DATA_TYPE_XML:
                 modelData = EventXMLParser.parse_xml_to_event(data, timestamp, srcAddr[0])
-                #modelData = EventData.EventData(timestamp, )
+
             else:
                 print 'ERROR: UNKNOWN DATA TYPE %d' % data_type
                 continue
@@ -66,12 +57,13 @@ class ServerUDPReceiver(threading.Thread):
             model = UniteModel.UniteModel(data_type, modelData)
             self.exportQueue.put(model)
             self.exportQueue.task_done()
-            print 'Queue size = %d' %(self.exportQueue.qsize())
+            #print 'Queue size = %d' %(self.exportQueue.qsize())
 
     def stop(self):
         self.should_stop = True
         self.udpServSock.close()
         print 'Connection closed.\tA SrvUDPRcv instance has been removed.'
+
 
 class ServerUDPSender(threading.Thread):
     '''服务器向客户端发送'''

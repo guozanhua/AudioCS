@@ -1,10 +1,5 @@
 #coding:utf-8
-from connections import ClientSocketHandler, ClientDataConsumer
-from GUI.ClientUIController import ClientUIController
-import Queue
-from time import sleep
-from PyQt4 import QtGui
-import sys
+from GUI import ClientUIController
 
 # app = QtGui.QApplication(sys.argv)
 #
@@ -22,3 +17,5 @@ import sys
 # c.stop()
 # c_consumer.stop()
 
+if __name__ == '__main__':
+    ClientUIController.run_me()
