@@ -5,7 +5,7 @@ import Queue
 
 inQueue = Queue.Queue()
 outQueue = Queue.Queue()
-s = ServerSocketHandler.ServerUDPReceiver(exportQueue=inQueue, iAddress='192.168.1.200', port=1234)
+s = ServerSocketHandler.ServerUDPReceiver(exportQueue=inQueue, iAddress='192.168.0.228', port=1234)
 s.start()
 #d = DataProcessor.DataProcessor(inQueue, outQueue)
 d = SimpDataProcessor.SimpleDataProcessor(inQueue, outQueue)

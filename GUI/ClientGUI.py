@@ -4,11 +4,13 @@ import sys
 
 from PyQt4 import QtGui, QtCore
 from Widgets.MetreHandLabel import MetreHandLabel
+from Widgets.MatPlotLabel import MatPlotLabel
 from GUI.Widgets.matplotlibWidgetFile import matplotlibWidget
 import random
 import networkx as nx
 from GUI import nx_custom_layout
 from time import sleep
+import CusSettings
 
 COLOR_MAP_NODE = ['#bf0c10', '#e1dd07', '#8cc12d', '#8fc43f']  # 红色：191,12,26 黄色：255,221,7 蓝色：140,193,45 绿色：143,196,63
 COLOR_MAP_EDGE = ['#7a7c7b', '#77787a', '#6f6f6f', '#505050', '#56575b', '#6f6f6f']  # 边的颜色，各种灰色
@@ -18,11 +20,18 @@ class ClientSummaryGUI(QtGui.QWidget):
     def __init__(self, parent=None):
         QtGui.QWidget.__init__(self, parent)
         self.setGeometry(350, 350, 500, 380)
-        self.setStyleSheet("background-color:#3c4043")
+        #self.setStyleSheet("background-color:#3c4043")
         self.move_offset = None
 
-        self.figure_widget = matplotlibWidget(self)
+        self.bkg = QtGui.QPixmap(CusSettings.CURRENT_PATH + 'resources/summary_bkg.png')
+        self.bkg_label = QtGui.QLabel(self)
+        self.bkg_label.setPixmap(self.bkg)
+        self.bkg_label.setGeometry(0, 0, 500, 380)
+
+
+        self.figure_widget = matplotlibWidget(self, figsize=(5.0, 3.8), dpi=10)
         self.figure_widget.setGeometry(0, 0, 500, 380)
+        self.figure_widget.hide()
 
         self.graph = nx.DiGraph()  # DiGraph
 
@@ -31,6 +40,12 @@ class ClientSummaryGUI(QtGui.QWidget):
 
         self.avg_count = 1.0  # 平均每个人说话的次数
         self.avg_edge_count = 1.0
+
+
+        self.figure_cus_label = MatPlotLabel(self)
+        self.figure_cus_label.setGeometry(0, 0, 500, 380)
+
+
 
         #g = nx.complete_graph(5)
         #self.draw_graph(g)
@@ -58,7 +73,7 @@ class ClientSummaryGUI(QtGui.QWidget):
                 conv_count = p.get_conv_count(c_ip)
                 edge_count += 1
                 edge_total += conv_count
-                self.graph.add_edge(ip, c_ip, weight=conv_count, color=COLOR_MAP_EDGE[count%4])
+                self.graph.add_edge(ip, c_ip, weight=conv_count, color=COLOR_MAP_NODE[count%4])
             count += 1
         self.avg_count = float(total)/float(count)
         if edge_count != 0:
@@ -88,21 +103,25 @@ class ClientSummaryGUI(QtGui.QWidget):
         # nx.draw_networkx(self.graph, pos=pos, ax=self.figure_widget.canvas.ax, node_size=node_size, node_color=node_color
         #          , edge_color=edge_color)
         nx.draw_networkx_nodes(self.graph, pos, node_size=node_size, node_color=node_color,
-                               ax=self.figure_widget.canvas.ax, linewidths=0.0, alpha=0.25)
+                               ax=self.figure_widget.canvas.ax, linewidths=0.0, alpha=0.10)
 
         nx.draw_networkx_nodes(self.graph, pos, node_size=node_size_2, node_color=node_color,
-                               ax=self.figure_widget.canvas.ax, linewidths=0.0, alpha=0.25)
+                               ax=self.figure_widget.canvas.ax, linewidths=0.0, alpha=0.15)
 
         nx.draw_networkx_nodes(self.graph, pos, node_size=node_size_3, node_color=node_color,
-                               ax=self.figure_widget.canvas.ax, linewidths=0.0, alpha=0.50)
+                               ax=self.figure_widget.canvas.ax, linewidths=0.0, alpha=0.40)
 
         nx.draw_networkx_labels(self.graph, pos, ax=self.figure_widget.canvas.ax)
         for i in range(0, len(edge_size)):
             #Draw edge with different width
             nx.draw_networkx_edges(self.graph, pos, width=edge_size[i], edge_color=edge_color[i],
-                                   ax=self.figure_widget.canvas.ax, edgelist=[self.graph.edges()[i]])
+                                   ax=self.figure_widget.canvas.ax, edgelist=[self.graph.edges()[i]],
+                                   alpha=0.5)
 
         self.figure_widget.canvas.draw()
+        self.figure_widget.saveFig('summary_fig.png')
+        self.figure_cus_label.set_img('summary_fig.png')
+
 
 
     def mousePressEvent(self, event):
@@ -124,6 +143,7 @@ class ClientUserGUI(QtGui.QWidget):
     def __init__(self, parent=None, ip='None'):
         QtGui.QWidget.__init__(self, parent)
         self.move_offset = 0
+        self.ip = ip
         self.emo_times = []    # 情绪状态发生时间的序列
         self.emo_values = []    # 情绪状态值的序列
 
@@ -131,15 +151,20 @@ class ClientUserGUI(QtGui.QWidget):
         self.bkg_image_label = QtGui.QLabel(self)
         self.bkg_image_label.setPixmap(self.bkg_image)
 
-        self.figure_widget = matplotlibWidget(self)
+        self.figure_widget = matplotlibWidget(self, figsize=(2.8, 0.6), dpi=10)
 
         self.plot_button = QtGui.QPushButton(ip, self)
         self.plot_button.raise_()
 
         self.hand_image = MetreHandLabel(self, (423,118))
 
+        self.figure_cus_label = MatPlotLabel(self)
+        #self.fig_image_label.hide()
+
 
         self.init_ui()
+
+
 
     def append_emo_state(self, timestamp, value):
         # 在时间序列里把新的情感状态及对应的时间加进去
@@ -154,6 +179,13 @@ class ClientUserGUI(QtGui.QWidget):
         self.figure_widget.canvas.draw()
         self.figure_widget.setAlpha(0.0)
 
+        output_fig_name = 'outputfig_' + self.ip + '.png'
+        self.figure_widget.saveFig(output_fig_name)
+        self.figure_cus_label.set_img(output_fig_name)
+
+
+
+
     def init_ui(self):
         self.setGeometry(300, 300, 640, 480)
         self.setWindowFlags(QtCore.Qt.FramelessWindowHint|QtCore.Qt.WindowStaysOnTopHint)  # Frameless window
@@ -162,7 +194,13 @@ class ClientUserGUI(QtGui.QWidget):
         self.bkg_image_label.setGeometry(0, 0, 542, 121)
         self.plot_button.setGeometry(74, 10, 100, 35)
         self.figure_widget.setGeometry(20, 60, 280, 60)
+        self.figure_widget.hide()
         self.hand_image.setGeometry(361, 58, 120, 120)
+        self.figure_cus_label.setGeometry(20, 60, 280, 60)
+
+        #TODO:REMOVE THIS
+        #self.figure_cus_label.set_img('d:/output_fig.png')
+        #TODO:END
 
         # self.connect(self.quit, QtCore.SIGNAL('clicked()'),
         #              QtGui.qApp, QtCore.SLOT('quit()'))
@@ -214,9 +252,9 @@ if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
     #qb = ClientUserGUI()
     qb = ClientSummaryGUI()
-    qb.show()
+    #qb.show()
     qa = ClientUserGUI()
-    #qa.show()
+    qa.show()
     sys.exit(app.exec_())
 
 
