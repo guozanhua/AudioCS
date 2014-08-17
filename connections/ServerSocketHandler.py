@@ -35,7 +35,7 @@ class ServerUDPReceiver(threading.Thread):
             print 'Received data from %s' %str(srcAddr[0])
             data_type = DataTypeHandler.determine_data_type(data)
             print 'length %d, data type %d' %(len(data), data_type)
-            timestamp = time.time()
+            timestamp = int(time.time())
 
             #continue
             #Push data to exportQueue
@@ -46,7 +46,6 @@ class ServerUDPReceiver(threading.Thread):
             elif data_type == DataTypeHandler.DATA_TYPE_CLS:
                 osc_msg = osc_message.OscMessage(data)
                 modelData = BooleanClsParser.parse_cls_to_clsdata(osc_msg, timestamp, srcAddr[0])
-
             elif data_type == DataTypeHandler.DATA_TYPE_XML:
                 modelData = EventXMLParser.parse_xml_to_event(data, timestamp, srcAddr[0])
 

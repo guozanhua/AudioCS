@@ -7,6 +7,7 @@ from models.UniteModel import *
 from models.Participant import *
 from models.ClassifierData import *
 from models.ConvContent import *
+from utils.LogHandler import LogFileHandler
 
 class SimpleDataProcessor(threading.Thread):
 
@@ -16,6 +17,8 @@ class SimpleDataProcessor(threading.Thread):
         self.exportQueue = exportQueue
         self.shouldStop = False
         self.participants = {}  # 所有参与者的Hash表(IP, Participant)
+
+        self.logHandler = LogFileHandler()
 
     def run(self):
         lastIP = None  # 上一个发送者的IP
@@ -30,6 +33,10 @@ class SimpleDataProcessor(threading.Thread):
                 print 'DO NOT USE SimpDataProcessor WITHOUT TYPE_CLASSIFY_RESULT, DATA OMITTED!'
                 continue
             cls_model = element.content
+
+            #Write to log file
+            self.logHandler.write_classifier_data(cls_model)
+
             ip = cls_model.senderip
             timestamp = cls_model.timestamp
             emoState = cls_model.result
@@ -74,6 +81,7 @@ class SimpleDataProcessor(threading.Thread):
 
     def stop(self):
         self.shouldStop = True
+        self.logHandler.close_file()
 
 
     def has_participant(self, ip):

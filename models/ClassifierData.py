@@ -10,8 +10,8 @@ class ClassifierData(GeneralData):
     RESULT_POSITIVE = 0
     RESULT_NEGATIVE = 1
 
-    def __init__(self, timestamp, sender, positive_rate, result = RESULT_NEGATIVE, duration=0.0):
-        GeneralData.__init__(self, timestamp, sender)
+    def __init__(self, timestamp, senderip, positive_rate, result = RESULT_NEGATIVE, duration=0.0):
+        GeneralData.__init__(self, timestamp, senderip)
         self.result = result
         self.positive_rate = positive_rate #结果为positive的置信度0~1
         self.duration = duration
