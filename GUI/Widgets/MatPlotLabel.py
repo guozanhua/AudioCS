@@ -2,11 +2,12 @@
 ''' 绘图结果用的label
 '''
 from PyQt4 import QtGui
+import CusSettings
 
 class MatPlotLabel(QtGui.QLabel):
     def __init__(self, parent):
         QtGui.QLabel.__init__(self, parent)
-        self.img_path = 'D:/Python/AudioCS/resources/output_fig_def.png'
+        self.img_path = CusSettings.CURRENT_PATH + 'resources/output_fig_def.png'
         self.img = QtGui.QPixmap(self.img_path)
 
     def paintEvent(self, event):

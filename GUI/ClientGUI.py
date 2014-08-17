@@ -147,7 +147,7 @@ class ClientUserGUI(QtGui.QWidget):
         self.emo_times = []    # 情绪状态发生时间的序列
         self.emo_values = []    # 情绪状态值的序列
 
-        self.bkg_image = QtGui.QPixmap('D:/Python/AudioCS/resources/background_u.png')  #TODO:修改为相对路径
+        self.bkg_image = QtGui.QPixmap(CusSettings.CURRENT_PATH + 'resources/background_u.png')  #TODO:修改为相对路径
         self.bkg_image_label = QtGui.QLabel(self)
         self.bkg_image_label.setPixmap(self.bkg_image)
 

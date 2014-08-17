@@ -6,6 +6,8 @@ from PyQt4 import QtGui, QtCore
 import sys
 import Queue
 import socket
+import os
+import CusSettings
 
 class ClientUIController(QtGui.QWidget):
     def __del__(self):
@@ -53,12 +55,20 @@ class ClientUIController(QtGui.QWidget):
         # 开启各种线程
 
         text, ok = QtGui.QInputDialog.getText(self, 'Input your current ip address'
-                                              , self.socket_text , text='192.168.1.200')
+                                     , self.socket_text , text='192.168.1.200')
         if ok:
             ip = text
         else:
             ip = '192.168.1.200'
         print 'Host IP address set to: %s' %ip
+
+        text, ok = QtGui.QInputDialog.getText(self, 'Current path', 'Enter current path',
+                                              text=os.getcwd())
+        if ok:
+            CusSettings.CURRENT_PATH = text
+        print 'Execution path set to: %s' %text
+
+
         self.c = ClientSocketHandler.ClientSocketReceiver(self.inQueue, ip)     # Socket Thread
 
         self.data_consumer = ClientDataConsumer.ClientQtDataConsumer(self.inQueue)
