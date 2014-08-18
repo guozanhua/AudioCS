@@ -1,11 +1,12 @@
 #coding:utf-8
 from PyQt4 import QtGui, QtCore
+import CusSettings
 
 class MetreHandLabel(QtGui.QLabel):
     def __init__(self, parent, centre_pos):
         QtGui.QLabel.__init__(self, parent)
         self.cent_pos = centre_pos  # 控件中心位置
-        self.img = QtGui.QPixmap('D:/Python/AudioCS/resources/hand_of_emometre_f.png')
+        self.img = QtGui.QPixmap(CusSettings.CURRENT_PATH + 'resources/hand_of_emometre_f.png')
         #self.refresh_img()
         self.rotate_angle = 0.0
 

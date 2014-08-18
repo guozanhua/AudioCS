@@ -62,8 +62,9 @@ class ClientUIController(QtGui.QWidget):
             ip = '192.168.1.200'
         print 'Host IP address set to: %s' %ip
 
+        currPath = os.getcwd().replace('\\','/') + '/'
         text, ok = QtGui.QInputDialog.getText(self, 'Current path', 'Enter current path',
-                                              text=os.getcwd())
+                                              text=currPath)
         if ok:
             CusSettings.CURRENT_PATH = text
         print 'Execution path set to: %s' %text
