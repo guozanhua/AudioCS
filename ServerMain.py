@@ -1,8 +1,9 @@
 __author__ = 'BorisHe'
 from connections import ServerSocketHandler, SimpDataProcessor
-from time import sleep
+#from time import sleep
 import Queue
 import socket
+import sys
 
 inQueue = Queue.Queue()
 outQueue = Queue.Queue()
@@ -24,4 +25,4 @@ raw_input('RUNNING...Press ANY KEY to quit...')
 s.stop()
 d.stop()
 s_send.stop()
-exit()
+sys.exit(0)

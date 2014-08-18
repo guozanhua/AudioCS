@@ -24,7 +24,7 @@ class ClientSocketReceiver(threading.Thread):
 
 
             participants = cPickle.loads(data)  #INFO:收到的是所有人的数据
-            print participants
+            #print participants
             self.exportQueue.put(participants)
 
 

@@ -44,7 +44,7 @@ class ClientDataConsumer(threading.Thread):
         while not self.shouldStop:
             if self.importQueue.empty():
                 continue
-            print 'ClientDataConsumer: Got sth.'
+            #print 'ClientDataConsumer: Got sth.'
             participants = self.importQueue.get()  #得到的是列表[Participant]
             #TODO: DEAL WITH DATA AND USE UI_CONTROLLER TO UPDATE UI
             self.uiController.put_data(participants)

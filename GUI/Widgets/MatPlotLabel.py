@@ -4,6 +4,7 @@
 from PyQt4 import QtGui
 import CusSettings
 
+
 class MatPlotLabel(QtGui.QLabel):
     def __init__(self, parent):
         QtGui.QLabel.__init__(self, parent)
@@ -12,8 +13,12 @@ class MatPlotLabel(QtGui.QLabel):
 
     def paintEvent(self, event):
         painter = QtGui.QPainter(self)
-
         painter.drawPixmap(0, 0, self.img)
+
+    def set_img_buffer(self, str_io_buffer):
+        qimg = QtGui.QImage.fromData(str_io_buffer.getvalue())
+        self.img = QtGui.QPixmap.fromImage(qimg)
+        self.update()  # call paintEvent
 
     def set_img(self, path):
         self.img_path = path

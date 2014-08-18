@@ -18,10 +18,10 @@ class MplCanvas(FigureCanvas):
         FigureCanvas.updateGeometry(self)
         #self.setAlpha(0.0)
 
-    def saveFig(self, path='d:/output_fig.png'):
+    def saveFig(self, str_io_buf):
         self.setAlpha(0.0)
-        self.fig.savefig(path, transparent=True, frameon=False, format='png')
-        #print 'image saved'
+        self.fig.savefig(str_io_buf, transparent=True, frameon=False, format='png')
+        # 140818 Save file to StringIO Buffer not disk file
 
     def getFig(self):
         return self.fig

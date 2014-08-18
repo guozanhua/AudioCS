@@ -11,8 +11,9 @@ import networkx as nx
 from GUI import nx_custom_layout
 from time import sleep
 import CusSettings
+import cStringIO
 
-COLOR_MAP_NODE = ['#bf0c10', '#e1dd07', '#8cc12d', '#8fc43f']  # 红色：191,12,26 黄色：255,221,7 蓝色：140,193,45 绿色：143,196,63
+COLOR_MAP_NODE = ['#bf0c10', '#e1dd07', '#008cc1', '#8fc43f']  # 红色：191,12,26 黄色：255,221,7 蓝色：0，140,1930 绿色：143,196,63
 COLOR_MAP_EDGE = ['#7a7c7b', '#77787a', '#6f6f6f', '#505050', '#56575b', '#6f6f6f']  # 边的颜色，各种灰色
 
 class ClientSummaryGUI(QtGui.QWidget):
@@ -23,9 +24,11 @@ class ClientSummaryGUI(QtGui.QWidget):
         #self.setStyleSheet("background-color:#3c4043")
         self.move_offset = None
 
-        self.bkg = QtGui.QPixmap(CusSettings.CURRENT_PATH + 'resources/summary_bkg.png')
+        #self.bkg = QtGui.QPixmap(CusSettings.CURRENT_PATH + 'resources/summary_bkg.png')
+
         self.bkg_label = QtGui.QLabel(self)
-        self.bkg_label.setPixmap(self.bkg)
+        #self.bkg_label.setPixmap(self.bkg)
+        self.bkg_label.setStyleSheet('background-color:rbga(0, 0, 0, 30)')
         self.bkg_label.setGeometry(0, 0, 500, 380)
 
 
@@ -33,7 +36,7 @@ class ClientSummaryGUI(QtGui.QWidget):
         self.figure_widget.setGeometry(0, 0, 500, 380)
         self.figure_widget.hide()
 
-        self.graph = nx.DiGraph()  # DiGraph
+        self.graph = nx.Graph()  # DiGraph
 
         self.setWindowFlags(QtCore.Qt.FramelessWindowHint|QtCore.Qt.WindowStaysOnTopHint)  # Frameless window
         self.setAttribute(QtCore.Qt.WA_TranslucentBackground, True)  #Translucent window
@@ -68,12 +71,12 @@ class ClientSummaryGUI(QtGui.QWidget):
 
             node_weight = p.posCount + p.negCount
             total += node_weight
-            self.graph.add_node(ip, weight=node_weight, color=COLOR_MAP_NODE[count%4])     # Node attribute `weight`
+            self.graph.add_node(ip, weight=node_weight, color=COLOR_MAP_NODE[count % 4])     # Node attribute `weight`
             for c_ip, conv in p.conversations.iteritems():
                 conv_count = p.get_conv_count(c_ip)
                 edge_count += 1
                 edge_total += conv_count
-                self.graph.add_edge(ip, c_ip, weight=conv_count, color=COLOR_MAP_NODE[count%4])
+                self.graph.add_edge(ip, c_ip, weight=conv_count, color=COLOR_MAP_EDGE[count % 6])
             count += 1
         self.avg_count = float(total)/float(count)
         if edge_count != 0:
@@ -83,17 +86,17 @@ class ClientSummaryGUI(QtGui.QWidget):
 
     def draw_graph(self):
         '''使用networkx绘制网络图 若使用None参数则绘制self.graph'''
-        print self.graph.nodes()
+        #print self.graph.nodes()
 
         # get node size and color
         node_size = [self.graph.node[n]['weight']*500.0/self.avg_count for n in self.graph.nodes_iter()]
-        node_size_2 = [self.graph.node[n]['weight']*1000.0/self.avg_count for n in self.graph.nodes_iter()]
-        node_size_3 = [self.graph.node[n]['weight']*1500.0/self.avg_count for n in self.graph.nodes_iter()]
+        node_size_2 = [self.graph.node[n]['weight']*800.0/self.avg_count for n in self.graph.nodes_iter()]
+        node_size_3 = [self.graph.node[n]['weight']*1100.0/self.avg_count for n in self.graph.nodes_iter()]
         print node_size
         node_color = [self.graph.node[n]['color'] for n in self.graph.nodes_iter()]
 
         # get edge size and color
-        edge_size = [self.graph.edge[s][d]['weight']*5.0/self.avg_edge_count for s,d in self.graph.edges_iter()]
+        edge_size = [self.graph.edge[s][d]['weight']*4.0/self.avg_edge_count for s,d in self.graph.edges_iter()]
         print edge_size
         edge_color = [self.graph.edge[s][d]['color'] for s,d in self.graph.edges_iter()]
 
@@ -103,13 +106,13 @@ class ClientSummaryGUI(QtGui.QWidget):
         # nx.draw_networkx(self.graph, pos=pos, ax=self.figure_widget.canvas.ax, node_size=node_size, node_color=node_color
         #          , edge_color=edge_color)
         nx.draw_networkx_nodes(self.graph, pos, node_size=node_size, node_color=node_color,
-                               ax=self.figure_widget.canvas.ax, linewidths=0.0, alpha=0.10)
+                               ax=self.figure_widget.canvas.ax, linewidths=0.0, alpha=0.55)
 
         nx.draw_networkx_nodes(self.graph, pos, node_size=node_size_2, node_color=node_color,
-                               ax=self.figure_widget.canvas.ax, linewidths=0.0, alpha=0.15)
+                               ax=self.figure_widget.canvas.ax, linewidths=0.0, alpha=0.30)
 
         nx.draw_networkx_nodes(self.graph, pos, node_size=node_size_3, node_color=node_color,
-                               ax=self.figure_widget.canvas.ax, linewidths=0.0, alpha=0.40)
+                               ax=self.figure_widget.canvas.ax, linewidths=0.0, alpha=0.15)
 
         nx.draw_networkx_labels(self.graph, pos, ax=self.figure_widget.canvas.ax)
         for i in range(0, len(edge_size)):
@@ -119,9 +122,12 @@ class ClientSummaryGUI(QtGui.QWidget):
                                    alpha=0.5)
 
         self.figure_widget.canvas.draw()
-        self.figure_widget.saveFig('summary_fig.png')
-        self.figure_cus_label.set_img('summary_fig.png')
-
+        #self.figure_widget.saveFig('summary_fig.png')
+        #self.figure_cus_label.set_img('summary_fig.png')
+        
+        str_io_buffer = cStringIO.StringIO()
+        self.figure_widget.saveFig(str_io_buffer)
+        self.figure_cus_label.set_img_buffer(str_io_buffer)
 
 
     def mousePressEvent(self, event):
@@ -133,10 +139,10 @@ class ClientSummaryGUI(QtGui.QWidget):
             new_pos = self.pos() + diff
             self.move(new_pos)
 
-    def mouseDoubleClickEvent(self, qMouseEvent):
-        #TODO: 在一定时间内连续双击，关闭整个UI程序(QUIT?)
-        qMouseEvent.accept()
-        self.close()
+    # def mouseDoubleClickEvent(self, qMouseEvent):
+    #     #TODO: 在一定时间内连续双击，关闭整个UI程序(QUIT?)
+    #     qMouseEvent.accept()
+    #     self.close()
 
 
 class ClientUserGUI(QtGui.QWidget):
@@ -175,15 +181,15 @@ class ClientUserGUI(QtGui.QWidget):
     def plot_timeline(self):
         # 绘制时间线
         self.figure_widget.canvas.ax.clear()
-        self.figure_widget.canvas.ax.plot(self.emo_times, self.emo_values, 'r-')
+        self.figure_widget.canvas.ax.plot(self.emo_times, self.emo_values, 'r')
         self.figure_widget.canvas.draw()
         self.figure_widget.setAlpha(0.0)
 
-        output_fig_name = 'outputfig_' + self.ip + '.png'
-        self.figure_widget.saveFig(output_fig_name)
-        self.figure_cus_label.set_img(output_fig_name)
-
-
+        #output_fig_name = 'outputfig_' + self.ip + '.png'
+        str_io_buf = cStringIO.StringIO()
+        self.figure_widget.saveFig(str_io_buf)
+        #self.figure_cus_label.set_img(output_fig_name)
+        self.figure_cus_label.set_img_buffer(str_io_buf)
 
 
     def init_ui(self):
@@ -214,10 +220,10 @@ class ClientUserGUI(QtGui.QWidget):
         angle = (f_value - 0.5) * 180.0
         print 'new angle = %f' % angle
         #TODO:有空搞点延迟效果
-        for i in range(5, 0, -1):
-            swing_angle = (random.random() - 0.5) * i * 2
-            self.hand_image.rotate_to(angle + swing_angle)
-            sleep(0.05)
+        # for i in range(5, 0, -1):
+        #     swing_angle = (random.random() - 0.5) * i * 2
+        #     self.hand_image.rotate_to(angle + swing_angle)
+        #     sleep(0.05)
 
         self.hand_image.rotate_to(angle)
 
@@ -231,10 +237,10 @@ class ClientUserGUI(QtGui.QWidget):
             new_pos = self.pos() + diff
             self.move(new_pos)
 
-    def mouseDoubleClickEvent(self, qMouseEvent):
-        #TODO: 在一定时间内连续双击，关闭整个UI程序(QUIT?)
-        qMouseEvent.accept()
-        self.close()
+    # def mouseDoubleClickEvent(self, qMouseEvent):
+    #     #TODO: 在一定时间内连续双击，关闭整个UI程序(QUIT?)
+    #     qMouseEvent.accept()
+    #     self.close()
 
 
 
