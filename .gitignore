@@ -9,6 +9,9 @@ __pycache__/
 outputfig_*.png
 summary_fig.png
 
+# compiled files
+*.pyc
+
 # Distribution / packaging
 .Python
 env/
