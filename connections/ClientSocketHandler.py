@@ -3,6 +3,7 @@
 import threading
 import socket
 import cPickle
+from models.Participant import Participant
 
 class ClientSocketReceiver(threading.Thread):
     def __init__(self, exportQueue, iAddress, port=2345):
