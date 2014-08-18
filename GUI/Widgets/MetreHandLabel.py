@@ -3,9 +3,8 @@ from PyQt4 import QtGui, QtCore
 import CusSettings
 
 class MetreHandLabel(QtGui.QLabel):
-    def __init__(self, parent, centre_pos):
+    def __init__(self, parent):
         QtGui.QLabel.__init__(self, parent)
-        self.cent_pos = centre_pos  # 控件中心位置
         self.img = QtGui.QPixmap(CusSettings.CURRENT_PATH + 'resources/hand_of_emometre_f.png')
         #self.refresh_img()
         self.rotate_angle = 0.0
@@ -28,8 +27,8 @@ class MetreHandLabel(QtGui.QLabel):
 
     def paintEvent(self, event):
         painter = QtGui.QPainter(self)
-        painter.translate(60, 60)
+        painter.translate(41, 41)
         painter.rotate(self.rotate_angle)
-        painter.translate(-60, -60)
+        painter.translate(-41, -41)
 
-        painter.drawPixmap(0, 0, 120, 120, self.img)
+        painter.drawPixmap(0, 0, 82, 82, self.img)

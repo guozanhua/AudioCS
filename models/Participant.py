@@ -4,6 +4,7 @@ class Participant:
     '''参与人的类，里面存储一些统计数据，及对话数据'''
     def __init__(self, ip, totalTime, posCount=0, negCount=0, conversations = None):
         self.ip = ip
+        self.nickname = None
         self.totalTime = totalTime
         self.posCount = posCount
         self.negCount = negCount

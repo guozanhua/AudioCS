@@ -1,10 +1,13 @@
 #coding:utf-8
 '''数据处理中心'''
+#TODO: REMOVE THIS　ＦＩＬＥ
+
 import threading
 from models.UniteModel import *
 from models.Participant import *
 from models.ClassifierData import *
 from models.ConvContent import *
+from utils.ConfigHandler import get_nicknames
 
 
 class DataProcessor(threading.Thread):
@@ -15,8 +18,11 @@ class DataProcessor(threading.Thread):
         self.importQueue = importQueue
         self.exportQueue = exportQueue
         self.shouldStop = False
-        self.participants = {}  #所有参与者的Hash表(IP, Participant)
-        self.elementDict = {}   #暂存元素的element表(IP, [element])
+        self.participants = {}  # 所有参与者的Hash表(IP, Participant)
+        self.elementDict = {}   # 暂存元素的element表(IP, [element])
+        self.nicknames = get_nicknames() # {IP , Nickname}
+
+
 
     def get_full_elements(self, element_in):
         '''将一个元素放进列表，如果有可用的配对组（目前3个一组），则返回值为可用数据的tuple，否则返回None, None'''
@@ -75,6 +81,8 @@ class DataProcessor(threading.Thread):
             self.participants[ip].latest_pos_val = posRate  # 判断为positive的rate
             self.participants[ip].latest_timestamp = timestamp  #消息发送时间
             self.participants[ip].ip = ip   #IP地址还是要的
+            if self.nicknames.has_key(ip):
+                self.participants[ip].nickname = self.nicknames[ip]  # 设置昵称
 
             if (lastIP is not None) and (lastIP != ip):
                 #构造Conversation (排除上个人的ip是自己的情况！)

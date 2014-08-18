@@ -8,6 +8,7 @@ from models.Participant import *
 from models.ClassifierData import *
 from models.ConvContent import *
 from utils.LogHandler import LogFileHandler
+from utils.ConfigHandler import get_nicknames
 
 class SimpleDataProcessor(threading.Thread):
 
@@ -17,7 +18,7 @@ class SimpleDataProcessor(threading.Thread):
         self.exportQueue = exportQueue
         self.shouldStop = False
         self.participants = {}  # 所有参与者的Hash表(IP, Participant)
-
+        self.nicknames = get_nicknames() # {IP , Nickname}
         self.logHandler = LogFileHandler()
 
     def run(self):
@@ -64,6 +65,9 @@ class SimpleDataProcessor(threading.Thread):
             self.participants[ip].latest_pos_val = posRate  # 判断为positive的rate
             self.participants[ip].latest_timestamp = timestamp  #消息发送时间
             self.participants[ip].ip = ip   #IP地址还是要的
+
+            if self.nicknames.has_key(ip):
+                self.participants[ip].nickname = self.nicknames[ip]  # 设置昵称
 
             if (lastIP is not None) and (lastIP != ip):
                 #构造Conversation (排除上个人的ip是自己的情况！)

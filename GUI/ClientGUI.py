@@ -49,7 +49,7 @@ class ClientSummaryGUI(QtGui.QWidget):
         self.figure_cus_label.setGeometry(0, 0, 500, 380)
 
 
-
+        self.node_labels = {}
         #g = nx.complete_graph(5)
         #self.draw_graph(g)
 
@@ -71,6 +71,12 @@ class ClientSummaryGUI(QtGui.QWidget):
 
             node_weight = p.posCount + p.negCount
             total += node_weight
+            # Add node label if available
+            if p.nickname is not None:
+                self.node_labels[ip] = p.nickname
+            else:
+                self.node_labels[ip] = ip
+
             self.graph.add_node(ip, weight=node_weight, color=COLOR_MAP_NODE[count % 4])     # Node attribute `weight`
             for c_ip, conv in p.conversations.iteritems():
                 conv_count = p.get_conv_count(c_ip)
@@ -81,6 +87,8 @@ class ClientSummaryGUI(QtGui.QWidget):
         self.avg_count = float(total)/float(count)
         if edge_count != 0:
             self.avg_edge_count = float(edge_total) /float(edge_count)
+
+
         return self.graph
 
 
@@ -114,7 +122,7 @@ class ClientSummaryGUI(QtGui.QWidget):
         nx.draw_networkx_nodes(self.graph, pos, node_size=node_size_3, node_color=node_color,
                                ax=self.figure_widget.canvas.ax, linewidths=0.0, alpha=0.15)
 
-        nx.draw_networkx_labels(self.graph, pos, ax=self.figure_widget.canvas.ax)
+        nx.draw_networkx_labels(self.graph, pos, ax=self.figure_widget.canvas.ax, labels=self.node_labels)
         for i in range(0, len(edge_size)):
             #Draw edge with different width
             nx.draw_networkx_edges(self.graph, pos, width=edge_size[i], edge_color=edge_color[i],
@@ -124,7 +132,7 @@ class ClientSummaryGUI(QtGui.QWidget):
         self.figure_widget.canvas.draw()
         #self.figure_widget.saveFig('summary_fig.png')
         #self.figure_cus_label.set_img('summary_fig.png')
-        
+
         str_io_buffer = cStringIO.StringIO()
         self.figure_widget.saveFig(str_io_buffer)
         self.figure_cus_label.set_img_buffer(str_io_buffer)
@@ -146,10 +154,11 @@ class ClientSummaryGUI(QtGui.QWidget):
 
 
 class ClientUserGUI(QtGui.QWidget):
-    def __init__(self, parent=None, ip='None'):
+    def __init__(self, parent=None, ip='None', nickname=None):
         QtGui.QWidget.__init__(self, parent)
         self.move_offset = 0
         self.ip = ip
+        self.nickname = nickname
         self.emo_times = []    # 情绪状态发生时间的序列
         self.emo_values = []    # 情绪状态值的序列
 
@@ -157,12 +166,15 @@ class ClientUserGUI(QtGui.QWidget):
         self.bkg_image_label = QtGui.QLabel(self)
         self.bkg_image_label.setPixmap(self.bkg_image)
 
-        self.figure_widget = matplotlibWidget(self, figsize=(2.8, 0.6), dpi=10)
+        self.figure_widget = matplotlibWidget(self, figsize=(1.94, 0.39), dpi=10)
 
-        self.plot_button = QtGui.QPushButton(ip, self)
+        pushbtn_text = ip
+        if nickname is not None:
+            pushbtn_text += ('(' + self.nickname + ')')
+        self.plot_button = QtGui.QPushButton(pushbtn_text, self)
         self.plot_button.raise_()
 
-        self.hand_image = MetreHandLabel(self, (423,118))
+        self.hand_image = MetreHandLabel(self)
 
         self.figure_cus_label = MatPlotLabel(self)
         #self.fig_image_label.hide()
@@ -176,7 +188,7 @@ class ClientUserGUI(QtGui.QWidget):
         # 在时间序列里把新的情感状态及对应的时间加进去
         self.emo_times.append(timestamp)
         self.emo_values.append(value)
-        print '(time, value) = (%d, %f) appended.' % (timestamp, value)
+        #print '(time, value) = (%d, %f) appended.' % (timestamp, value)
 
     def plot_timeline(self):
         # 绘制时间线
@@ -193,20 +205,16 @@ class ClientUserGUI(QtGui.QWidget):
 
 
     def init_ui(self):
-        self.setGeometry(300, 300, 640, 480)
+        self.setGeometry(300, 300, 383, 126) # 85+41
         self.setWindowFlags(QtCore.Qt.FramelessWindowHint|QtCore.Qt.WindowStaysOnTopHint)  # Frameless window
         self.setAttribute(QtCore.Qt.WA_TranslucentBackground, True)  #Translucent window
 
-        self.bkg_image_label.setGeometry(0, 0, 542, 121)
-        self.plot_button.setGeometry(74, 10, 100, 35)
-        self.figure_widget.setGeometry(20, 60, 280, 60)
-        self.figure_widget.hide()
-        self.hand_image.setGeometry(361, 58, 120, 120)
-        self.figure_cus_label.setGeometry(20, 60, 280, 60)
-
-        #TODO:REMOVE THIS
-        #self.figure_cus_label.set_img('d:/output_fig.png')
-        #TODO:END
+        self.bkg_image_label.setGeometry(0, 0, 383, 85)
+        self.plot_button.setGeometry(52, 7, 120, 25)
+        self.figure_widget.setGeometry(17, 44, 194, 39)
+        self.figure_widget.hide()       # TODO: 考虑去掉这个widget
+        self.hand_image.setGeometry(257, 42, 82, 82)
+        self.figure_cus_label.setGeometry(17, 44, 194, 39)
 
         # self.connect(self.quit, QtCore.SIGNAL('clicked()'),
         #              QtGui.qApp, QtCore.SLOT('quit()'))

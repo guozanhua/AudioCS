@@ -14,13 +14,13 @@ def nx_custom_layout(graph):
     if n == 1:
         pos = np.asarray([[0.50, 0.50]], dtype=np.float32)
     elif n == 2:
-        pos = np.asarray([[0.20, 0.80], [0.80, 0.20]], dtype=np.float32)
+        pos = np.asarray([[0.25, 0.75], [0.75, 0.25]], dtype=np.float32)
     elif n == 4:
-        pos = np.asarray([[0.20, 0.20], [0.20, 0.80],
-                          [0.80,0.20], [0.80,0.80]], dtype=np.float32)
+        pos = np.asarray([[0.25, 0.25], [0.25, 0.75],
+                          [0.75, 0.25], [0.75, 0.25]], dtype=np.float32)
     elif n == 3:
-        pos = np.asarray([[0.50, 0.80], [0.20, 0.20],
-                          [0.80, 0.20]], dtype=np.float32)
+        pos = np.asarray([[0.50, 0.75], [0.25, 0.25],
+                          [0.75, 0.25]], dtype=np.float32)
     else:
         print '`n` size not expected : %d' % n
         pos = np.asarray(np.random.random((n, 2)), dtype=np.float32)  # Behave as random_layout when size > 4

@@ -36,6 +36,8 @@ class ClientUIController(QtGui.QWidget):
 
         self.setLayout(self.vbox)
 
+
+
         self.init_threads()
 
         self.summary_UI.show()
@@ -83,9 +85,9 @@ class ClientUIController(QtGui.QWidget):
         # 判断是否已经有这个IP对应的UI了
         return self.client_UIs.has_key(ip)
 
-    def add_client(self, ip):
+    def add_client(self, ip, nickname=None):
         # 增加一个客户端的UI
-        self.client_UIs[ip] = ClientUserGUI(ip=ip)
+        self.client_UIs[ip] = ClientUserGUI(ip=ip, nickname=nickname)
         self.client_UIs[ip].show()
         #sys.exit(self.app.exec_())
         #self.app.exec_()
@@ -104,7 +106,7 @@ class ClientUIController(QtGui.QWidget):
         for ip, p in participants.items():
 
             if not self.has_client(ip):
-                self.add_client(ip)
+                self.add_client(ip, nickname=p.nickname)
                 print 'Participant %s added.' % ip
             # 把消息放进去
             emo_value = p.latest_pos_val
