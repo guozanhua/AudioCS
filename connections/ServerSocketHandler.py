@@ -21,6 +21,7 @@ class ServerUDPReceiver(threading.Thread):
         addr = (self.IADDRESS, self.PORT)
         self.udpServSock.bind(addr)
         self.should_stop = False
+        self.echo_only = True       # 只接受Echo信息
 
         print 'A ServerUDPReceiver instance has been created.(%s)' %str(self.PORT)
 
@@ -40,14 +41,19 @@ class ServerUDPReceiver(threading.Thread):
             #continue
             #Push data to exportQueue
 
-            if data_type == DataTypeHandler.DATA_TYPE_BIN:
-                osc_msg = osc_message.OscMessage(data)
-                modelData = StreamDataParser.parse_stream_to_model(osc_msg, srcAddr[0], timestamp)#BinaryData.BinaryData(timestamp, srcAddr[0], data)
+            # if data_type == DataTypeHandler.DATA_TYPE_BIN:
+            #     osc_msg = osc_message.OscMessage(data)
+            #     modelData = StreamDataParser.parse_stream_to_model(osc_msg, srcAddr[0], timestamp)#BinaryData.BinaryData(timestamp, srcAddr[0], data)
+            if data_type == DataTypeHandler.DATA_TYPE_ECHO:
+                modelData = srcAddr[0]    # ECHO消息的modelData为发送人的IP
             elif data_type == DataTypeHandler.DATA_TYPE_CLS:
+                if self.echo_only:
+                    print 'ECHO ONLY.'
+                    continue
                 osc_msg = osc_message.OscMessage(data)
                 modelData = BooleanClsParser.parse_cls_to_clsdata(osc_msg, timestamp, srcAddr[0])
-            elif data_type == DataTypeHandler.DATA_TYPE_XML:
-                modelData = EventXMLParser.parse_xml_to_event(data, timestamp, srcAddr[0])
+            # elif data_type == DataTypeHandler.DATA_TYPE_XML:
+            #     modelData = EventXMLParser.parse_xml_to_event(data, timestamp, srcAddr[0])
 
             else:
                 print 'ERROR: UNKNOWN DATA TYPE %d' % data_type
@@ -77,14 +83,14 @@ class ServerUDPSender(threading.Thread):
         while not self.should_stop:
             if self.importQueue.empty():
                 continue
-            participants = self.importQueue.get()
+            hugePkg = self.importQueue.get()
             print 'I`ve got something...'
-            for ip in participants:
+            for ip in hugePkg.statDataDict:
                 #建立Socket连接，发还数据给客户端
                 #p = participants[ip]
                 address = (ip, self.targetPort)
                 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-                p_pickle = cPickle.dumps(participants)  #用cPickle序列化,发送所有人的资料！
+                p_pickle = cPickle.dumps(hugePkg)  #用cPickle序列化,发送所有人的资料！
                 s.sendto(p_pickle, address)
                 s.close()
 

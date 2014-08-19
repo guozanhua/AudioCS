@@ -7,7 +7,8 @@ import sys
 
 class ClientQtDataConsumer(QtCore.QThread):
     '''新的Consumer 使用QThread，当拿到东西后会给ClientUIController发送信号'''
-    data_got = QtCore.pyqtSignal(object)
+    stat_data_got = QtCore.pyqtSignal(object)   #统计信息更新
+    incr_data_got = QtCore.pyqtSignal(object)   #增量信息更新
 
     def __init__(self, inQueue):
         QtCore.QThread.__init__(self)
@@ -20,8 +21,16 @@ class ClientQtDataConsumer(QtCore.QThread):
             if self.inQueue.empty():
                 continue
             print 'ClientDataConsumer: Got sth.'
-            participants = self.inQueue.get()
-            self.data_got.emit(participants)    # emit!!!
+
+            #TODO 20140819 在这里处理数据，然后emit!
+            hugePkg = self.inQueue.get()
+            #self.data_got.emit(participants)    # emit!!!
+            incrData = hugePkg.incrData
+            if incrData is not None:
+                self.incr_data_got.emit(incrData)
+
+            statDataDict = hugePkg.statDataDict
+            self.stat_data_got.emit(statDataDict)
 
 
     def stop(self):

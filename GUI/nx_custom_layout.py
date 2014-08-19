@@ -17,7 +17,7 @@ def nx_custom_layout(graph):
         pos = np.asarray([[0.25, 0.75], [0.75, 0.25]], dtype=np.float32)
     elif n == 4:
         pos = np.asarray([[0.25, 0.25], [0.25, 0.75],
-                          [0.75, 0.25], [0.75, 0.25]], dtype=np.float32)
+                          [0.75, 0.25], [0.75, 0.75]], dtype=np.float32)
     elif n == 3:
         pos = np.asarray([[0.50, 0.75], [0.25, 0.25],
                           [0.75, 0.25]], dtype=np.float32)

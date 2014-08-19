@@ -50,6 +50,8 @@ class ClientUIController(QtGui.QWidget):
                                            (self.screen_resolution[0]*0.67, self.screen_resolution[1]*0.59))  # Summary UI
         self.summary_UI.show()
 
+
+
     def mouseDoubleClickEvent(self, *args, **kwargs):
         print 'QUIT...'
         for ip, client in self.client_UIs.iteritems():
@@ -83,10 +85,30 @@ class ClientUIController(QtGui.QWidget):
         self.c = ClientSocketHandler.ClientSocketReceiver(self.inQueue, ip)     # Socket Thread
 
         self.data_consumer = ClientDataConsumer.ClientQtDataConsumer(self.inQueue)
-        self.data_consumer.data_got.connect(self.put_data)
+        #self.data_consumer.data_got.connect(self.put_data)
+        self.data_consumer.stat_data_got.connect(self.put_stat_data)
+        self.data_consumer.incr_data_got.connect(self.put_incr_data)
 
         self.c.start()
+
         self.data_consumer.start()
+
+        text, ok = QtGui.QInputDialog.getText(self, 'Input SERVER ip address'
+                                     , 'Input SERVER ip address, it`s NOT your own ip...')
+        if ok:
+            ip = text
+        else:
+            ip = '192.168.0.228'
+        print 'Server IP address set to: %s' %ip
+        self.send_echo_to_server(server_ip=text)
+
+
+    def send_echo_to_server(self, server_ip):
+        address = (server_ip, 1234)  # port number 1234
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.sendto('/echo', address)
+        s.close()
+        print 'echo message sent to %s' % server_ip
 
 
     def has_client(self, ip):
@@ -108,6 +130,30 @@ class ClientUIController(QtGui.QWidget):
         self.client_UIs[ip].close()
         del self.client_UIs[ip]
 
+    def put_stat_data(self, statDataDict):
+        # 统计信息
+        p_length = len(statDataDict)
+        if p_length < 1:
+            print '[ERROR] NO VALID PARTICIPANT'
+            return
+        for ip, p in statDataDict.iteritems():
+            if not self.has_client(ip):
+                self.add_client(ip, nickname=p.nickname)
+                print 'Participant %s added.' % ip
+        self.summary_UI.make_graph(statDataDict)
+        self.summary_UI.draw_graph()
+
+    def put_incr_data(self, incrData):
+        # 增量信息
+        ip = incrData.ip
+        pos_val = incrData.pos_val
+        timestamp = incrData.timestamp
+        print 'emo_val=%f' % pos_val
+        self.client_UIs[ip].rotate_to_value(pos_val)
+        self.client_UIs[ip].append_emo_state(timestamp, pos_val)
+        self.client_UIs[ip].plot_timeline()
+
+    #ABANDONED
     def put_data(self, participants):
         ''' 从远方来的消息往这里塞 '''
         p_length = len(participants)

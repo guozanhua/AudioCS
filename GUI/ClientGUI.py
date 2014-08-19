@@ -9,7 +9,7 @@ from GUI.Widgets.matplotlibWidgetFile import matplotlibWidget
 import random
 import networkx as nx
 from GUI import nx_custom_layout
-from time import sleep
+import time
 import CusSettings
 import cStringIO
 
@@ -61,13 +61,15 @@ class ClientSummaryGUI(QtGui.QWidget):
         return self.graph.nodes().index(ip)
 
 
-    def make_graph(self, participants):
+    def make_graph(self, statDataDict):
         # 根据participants绘制网络图
         count = 0
         total = 0
         edge_count = 0
         edge_total = 0
-        for ip, p in participants.iteritems():
+        edge_weight = {}      # {src_ip, {dst_ip, weight}}   务必遵循src_ip < dst_ip!!!
+
+        for ip, p in statDataDict.iteritems():
 
             node_weight = p.posCount + p.negCount
             total += node_weight
@@ -78,16 +80,32 @@ class ClientSummaryGUI(QtGui.QWidget):
                 self.node_labels[ip] = ip
 
             self.graph.add_node(ip, weight=node_weight, color=COLOR_MAP_NODE[count % 4])     # Node attribute `weight`
-            for c_ip, conv in p.conversations.iteritems():
-                conv_count = p.get_conv_count(c_ip)
-                edge_count += 1
-                edge_total += conv_count
-                self.graph.add_edge(ip, c_ip, weight=conv_count, color=COLOR_MAP_EDGE[count % 6])
-            count += 1
-        self.avg_count = float(total)/float(count)
-        if edge_count != 0:
-            self.avg_edge_count = float(edge_total) /float(edge_count)
 
+            for c_ip, conv_count in p.conv.iteritems():
+                src_ip = ip
+                dst_ip = c_ip
+                if not ip < c_ip:
+                    src_ip = c_ip
+                    dst_ip = ip
+                if not edge_weight.has_key(src_ip):
+                    edge_weight[src_ip] = {}
+                if not edge_weight[src_ip].has_key(dst_ip):
+                    edge_weight[src_ip][dst_ip] = conv_count
+                else:
+                    edge_weight[src_ip][dst_ip] += conv_count
+
+            for src_ip, dst_dict in edge_weight.iteritems():
+                #conv_count = p.get_conv_count(c_ip)
+                for dst_ip, conv_count in edge_weight[src_ip].iteritems():
+                    edge_count += 1
+                    edge_total += conv_count
+                    self.graph.add_edge(src_ip, dst_ip, weight=conv_count, color=COLOR_MAP_EDGE[count % 6])
+                    count += 1
+
+        if count != 0 and total != 0:
+            self.avg_count = float(total)/float(count)
+        if edge_count != 0 and edge_total != 0:
+            self.avg_edge_count = float(edge_total) /float(edge_count)
 
         return self.graph
 
@@ -97,9 +115,9 @@ class ClientSummaryGUI(QtGui.QWidget):
         #print self.graph.nodes()
 
         # get node size and color
-        node_size = [self.graph.node[n]['weight']*500.0/self.avg_count for n in self.graph.nodes_iter()]
-        node_size_2 = [self.graph.node[n]['weight']*800.0/self.avg_count for n in self.graph.nodes_iter()]
-        node_size_3 = [self.graph.node[n]['weight']*1100.0/self.avg_count for n in self.graph.nodes_iter()]
+        node_size = [self.graph.node[n]['weight']*450.0/self.avg_count for n in self.graph.nodes_iter()]
+        node_size_2 = [self.graph.node[n]['weight']*750.0/self.avg_count for n in self.graph.nodes_iter()]
+        node_size_3 = [self.graph.node[n]['weight']*1250.0/self.avg_count for n in self.graph.nodes_iter()]
         print node_size
         node_color = [self.graph.node[n]['color'] for n in self.graph.nodes_iter()]
 
@@ -162,6 +180,8 @@ class ClientUserGUI(QtGui.QWidget):
         self.emo_times = []    # 情绪状态发生时间的序列
         self.emo_values = []    # 情绪状态值的序列
 
+        self.last_plot_time = 0     #上次刷新图形时的时间戳
+
         self.bkg_image = QtGui.QPixmap(CusSettings.CURRENT_PATH + 'resources/background_u.png')  #TODO:修改为相对路径
         self.bkg_image_label = QtGui.QLabel(self)
         self.bkg_image_label.setPixmap(self.bkg_image)
@@ -196,6 +216,11 @@ class ClientUserGUI(QtGui.QWidget):
             self.emo_values = self.emo_values[::2]
 
     def plot_timeline(self):
+        curr_timestamp = time.time()
+        if curr_timestamp - self.last_plot_time < 0.5:
+            # 距离上次刷新不到0.5秒
+            return
+
         # 绘制时间线
         self.figure_widget.canvas.ax.clear()
         self.figure_widget.canvas.ax.plot(self.emo_times, self.emo_values, 'r')
@@ -208,6 +233,8 @@ class ClientUserGUI(QtGui.QWidget):
         #self.figure_cus_label.set_img(output_fig_name)
         self.figure_cus_label.set_img_buffer(str_io_buf)
 
+        self.last_plot_time = time.time()
+
 
     def init_ui(self):
 
@@ -216,7 +243,7 @@ class ClientUserGUI(QtGui.QWidget):
 
         self.bkg_image_label.setGeometry(0, 0, 383, 85)
         self.plot_button.setGeometry(52, 7, 120, 25)
-        self.figure_widget.setGeometry(17, 44, 194, 39)
+        #self.figure_widget.setGeometry(17, 44, 194, 39)
         self.figure_widget.hide()       # TODO: 考虑去掉这个widget
         self.hand_image.setGeometry(257, 42, 82, 82)
         self.figure_cus_label.setGeometry(17, 44, 194, 39)

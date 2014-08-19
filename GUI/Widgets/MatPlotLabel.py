@@ -8,7 +8,7 @@ import CusSettings
 class MatPlotLabel(QtGui.QLabel):
     def __init__(self, parent):
         QtGui.QLabel.__init__(self, parent)
-        self.img_path = CusSettings.CURRENT_PATH + 'resources/output_fig_def.png'
+        self.img_path = CusSettings.CURRENT_PATH + 'resources/output_fig_def00.png'
         self.img = QtGui.QPixmap(self.img_path)
 
     def paintEvent(self, event):

@@ -23,9 +23,9 @@ class ClientSocketReceiver(threading.Thread):
             print 'Received data from %s' %str(srcAddr[0])
 
 
-            participants = cPickle.loads(data)  #INFO:收到的是所有人的数据
+            hugePkg = cPickle.loads(data)  #INFO:收到的是所有人的数据
             #print participants
-            self.exportQueue.put(participants)
+            self.exportQueue.put(hugePkg)
 
 
     def stop(self):

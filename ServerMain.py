@@ -1,3 +1,4 @@
+#coding:utf-8
 __author__ = 'BorisHe'
 from connections import ServerSocketHandler, SimpDataProcessor
 #from time import sleep
@@ -20,16 +21,18 @@ s_send = ServerSocketHandler.ServerUDPSender(outQueue)
 s_send.start()
 
 
-text = raw_input('[RUNNING]Type `stop` to exit, type `clear` to reset the data (log file will be kept):')
+text = raw_input('[RUNNING]`start` to start listening，`stop`: to stop listening')
 while True:
     if text == 'stop':
         s.stop()
         d.stop()
         s_send.stop()
         sys.exit(0)
-    elif text == 'clear':
-        d.clear()
+    # elif text == 'clear':
+    #     d.clear()
+    elif text == 'start':
+        s.echo_only = False     #关闭echo only，正式开始记录
     else:
-        text = raw_input('[RUNNING]Type `stop` to exit, type `clear` to reset the data (log file will be kept):')
+        text = raw_input('[RUNNING]`start` to start listening, `stop`: to stop listening:')
 
 

@@ -6,6 +6,7 @@ class UniteModel:
     TYPE_CLASSIFY_RESULT = 0    #分类器结果
     TYPE_BINARY_DATA = 1        #二进制数据（音频之类的）
     TYPE_EVENT_DATA = 2         #Event事件数据
+    TYPE_ECHO_DATA = 3          #Echo data
     TYPE_OTHER = 99             #其他类型（plain text之类的）
 
     def __init__(self, type = TYPE_OTHER, content = None):
