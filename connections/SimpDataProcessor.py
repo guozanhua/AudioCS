@@ -83,6 +83,11 @@ class SimpleDataProcessor(threading.Thread):
 
             lastIP = ip     # Update lastIP to current ip
 
+    def clear(self):
+        self.participants.clear()
+        self.importQueue.queue.clear()
+        self.exportQueue.queue.clear()
+
     def stop(self):
         self.shouldStop = True
         self.logHandler.close_file()

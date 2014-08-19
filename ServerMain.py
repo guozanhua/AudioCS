@@ -20,9 +20,16 @@ s_send = ServerSocketHandler.ServerUDPSender(outQueue)
 s_send.start()
 
 
-raw_input('RUNNING...Press ANY KEY to quit...')
+text = raw_input('[RUNNING]Type `stop` to exit, type `clear` to reset the data (log file will be kept):')
+while True:
+    if text == 'stop':
+        s.stop()
+        d.stop()
+        s_send.stop()
+        sys.exit(0)
+    elif text == 'clear':
+        d.clear()
+    else:
+        text = raw_input('[RUNNING]Type `stop` to exit, type `clear` to reset the data (log file will be kept):')
 
-s.stop()
-d.stop()
-s_send.stop()
-sys.exit(0)
+

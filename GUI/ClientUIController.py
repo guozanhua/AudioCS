@@ -3,6 +3,7 @@
 from ClientGUI import ClientUserGUI, ClientSummaryGUI
 from connections import ClientSocketHandler, ClientDataConsumer
 from PyQt4 import QtGui, QtCore
+from win32api import GetSystemMetrics
 import sys
 import Queue
 import socket
@@ -10,6 +11,9 @@ import os
 import CusSettings
 
 class ClientUIController(QtGui.QWidget):
+    CLIENT_UI_POS_X = [0.10, 0.46, 0.77, 0.39]  # 相对坐标
+    CLIENT_UI_POS_Y = [0.11, 0.11, 0.11, 0.60]
+
     def __del__(self):
         self.c.stop()
         self.data_consumer.stop()
@@ -19,7 +23,10 @@ class ClientUIController(QtGui.QWidget):
         QtGui.QWidget.__init__(self)
         self.num_clients = 0
         self.client_UIs = {}    # One UI for each user, {IP, ui}
-        self.summary_UI = ClientSummaryGUI()  # Summary UI
+
+
+        self.screen_resolution = (GetSystemMetrics(0), GetSystemMetrics(1))
+        print 'Screen resolution :%dx%d' % (self.screen_resolution[0], self.screen_resolution[1])
 
         self.inQueue = Queue.Queue()
         self.c = None
@@ -37,9 +44,10 @@ class ClientUIController(QtGui.QWidget):
         self.setLayout(self.vbox)
 
 
-
         self.init_threads()
 
+        self.summary_UI = ClientSummaryGUI(init_position=
+                                           (self.screen_resolution[0]*0.67, self.screen_resolution[1]*0.59))  # Summary UI
         self.summary_UI.show()
 
     def mouseDoubleClickEvent(self, *args, **kwargs):
@@ -87,10 +95,13 @@ class ClientUIController(QtGui.QWidget):
 
     def add_client(self, ip, nickname=None):
         # 增加一个客户端的UI
-        self.client_UIs[ip] = ClientUserGUI(ip=ip, nickname=nickname)
+        client_count = len(self.client_UIs)     # 根据当前客户端的数量设定初始位置(有待进一步修改)
+        pos_x = self.CLIENT_UI_POS_X[client_count-1] * self.screen_resolution[0]
+        pos_y = self.CLIENT_UI_POS_Y[client_count-1] * self.screen_resolution[1]
+
+        self.client_UIs[ip] = ClientUserGUI(ip=ip, nickname=nickname, init_position=(pos_x, pos_y))
         self.client_UIs[ip].show()
-        #sys.exit(self.app.exec_())
-        #self.app.exec_()
+
         print 'A new ui instance created.'
 
     def remove_client(self, ip):

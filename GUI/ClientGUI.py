@@ -18,9 +18,9 @@ COLOR_MAP_EDGE = ['#7a7c7b', '#77787a', '#6f6f6f', '#505050', '#56575b', '#6f6f6
 
 class ClientSummaryGUI(QtGui.QWidget):
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, init_position=(350, 350)):
         QtGui.QWidget.__init__(self, parent)
-        self.setGeometry(350, 350, 500, 380)
+        self.setGeometry(init_position[0], init_position[1], 500, 380)
         #self.setStyleSheet("background-color:#3c4043")
         self.move_offset = None
 
@@ -127,7 +127,7 @@ class ClientSummaryGUI(QtGui.QWidget):
             #Draw edge with different width
             nx.draw_networkx_edges(self.graph, pos, width=edge_size[i], edge_color=edge_color[i],
                                    ax=self.figure_widget.canvas.ax, edgelist=[self.graph.edges()[i]],
-                                   alpha=0.5)
+                                   alpha=0.8)
 
         self.figure_widget.canvas.draw()
         #self.figure_widget.saveFig('summary_fig.png')
@@ -154,7 +154,7 @@ class ClientSummaryGUI(QtGui.QWidget):
 
 
 class ClientUserGUI(QtGui.QWidget):
-    def __init__(self, parent=None, ip='None', nickname=None):
+    def __init__(self, parent=None, ip='None', nickname=None, init_position=(300, 300)):
         QtGui.QWidget.__init__(self, parent)
         self.move_offset = 0
         self.ip = ip
@@ -179,7 +179,7 @@ class ClientUserGUI(QtGui.QWidget):
         self.figure_cus_label = MatPlotLabel(self)
         #self.fig_image_label.hide()
 
-
+        self.setGeometry(init_position[0], init_position[1], 383, 126)  # 85+41
         self.init_ui()
 
 
@@ -189,6 +189,11 @@ class ClientUserGUI(QtGui.QWidget):
         self.emo_times.append(timestamp)
         self.emo_values.append(value)
         #print '(time, value) = (%d, %f) appended.' % (timestamp, value)
+        if len(self.emo_values) > 200:
+            # 如果过长，会导致显示混乱，现在先抽取一半元素显示
+            #TODO: 有待测试
+            self.emo_times = self.emo_times[::2]
+            self.emo_values = self.emo_values[::2]
 
     def plot_timeline(self):
         # 绘制时间线
@@ -205,7 +210,7 @@ class ClientUserGUI(QtGui.QWidget):
 
 
     def init_ui(self):
-        self.setGeometry(300, 300, 383, 126) # 85+41
+
         self.setWindowFlags(QtCore.Qt.FramelessWindowHint|QtCore.Qt.WindowStaysOnTopHint)  # Frameless window
         self.setAttribute(QtCore.Qt.WA_TranslucentBackground, True)  #Translucent window
 
