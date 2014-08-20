@@ -67,7 +67,7 @@ class ClientUIController(QtGui.QWidget):
         # 开启各种线程
 
         text, ok = QtGui.QInputDialog.getText(self, 'Input your current ip address'
-                                     , self.socket_text , text='192.168.1.200')
+                                     , self.socket_text , text='10.214.143.')
         if ok:
             ip = text
         else:
@@ -75,11 +75,10 @@ class ClientUIController(QtGui.QWidget):
         print 'Host IP address set to: %s' %ip
 
         currPath = os.getcwd().replace('\\','/') + '/'
-        text, ok = QtGui.QInputDialog.getText(self, 'Current path', 'Enter current path',
-                                              text=currPath)
-        if ok:
-            CusSettings.CURRENT_PATH = text
-        print 'Execution path set to: %s' %text
+        # text, ok = QtGui.QInputDialog.getText(self, 'Current path', 'Enter current path',
+        #                                       text=currPath)
+        CusSettings.CURRENT_PATH = currPath
+        print 'Execution path set to: %s' % currPath
 
 
         self.c = ClientSocketHandler.ClientSocketReceiver(self.inQueue, ip)     # Socket Thread
@@ -94,11 +93,12 @@ class ClientUIController(QtGui.QWidget):
         self.data_consumer.start()
 
         text, ok = QtGui.QInputDialog.getText(self, 'Input SERVER ip address'
-                                     , 'Input SERVER ip address, it`s NOT your own ip...')
+                                     , 'Input SERVER ip address, it`s NOT your own ip...'
+                                , text='10.214.143.220')
         if ok:
             ip = text
         else:
-            ip = '192.168.0.228'
+            ip = '10.214.143.220'
         print 'Server IP address set to: %s' %ip
         self.send_echo_to_server(server_ip=text)
 
