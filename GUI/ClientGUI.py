@@ -13,8 +13,13 @@ import time
 import CusSettings
 import cStringIO
 
-COLOR_MAP_NODE = ['#bf0c10', '#e1dd07', '#008cc1', '#8fc43f']  # 红色：191,12,26 黄色：255,221,7 蓝色：0，140,1930 绿色：143,196,63
+COLOR_MAP_NODE = ['##FD5C04', '#e1dd07', '#008cc1', '#8fc43f']  # 橙色：253,92,4 黄色：255,221,7 蓝色：0，140,1930 绿色：143,196,63
 COLOR_MAP_EDGE = ['#7a7c7b', '#77787a', '#6f6f6f', '#505050', '#56575b', '#6f6f6f']  # 边的颜色，各种灰色
+
+STATIC_NODE_COLOR = {'10.214.143.221': '##FD5C04',
+                     '10.214.143.224': '#e1dd07',
+                     '10.214.143.222': '#008cc1',
+                     '10.214.143.226': '#8fc43f'}
 
 class ClientSummaryGUI(QtGui.QWidget):
 
@@ -63,6 +68,7 @@ class ClientSummaryGUI(QtGui.QWidget):
 
     def make_graph(self, statDataDict):
         # 根据participants绘制网络图
+        #empty_node_count = 0
         count = 0
         total = 0
         edge_count = 0
@@ -79,7 +85,12 @@ class ClientSummaryGUI(QtGui.QWidget):
             else:
                 self.node_labels[ip] = ip
 
-            self.graph.add_node(ip, weight=node_weight, color=COLOR_MAP_NODE[count % 4])     # Node attribute `weight`
+            if STATIC_NODE_COLOR.has_key(ip):
+                n_color = STATIC_NODE_COLOR[ip]
+            else:
+                n_color = COLOR_MAP_NODE[count % 4]
+
+            self.graph.add_node(ip, weight=node_weight, color=n_color)     # Node attribute `weight`
 
             for c_ip, conv_count in p.conv.iteritems():
                 src_ip = ip
@@ -118,12 +129,12 @@ class ClientSummaryGUI(QtGui.QWidget):
         node_size = [self.graph.node[n]['weight']*450.0/self.avg_count for n in self.graph.nodes_iter()]
         node_size_2 = [self.graph.node[n]['weight']*750.0/self.avg_count for n in self.graph.nodes_iter()]
         node_size_3 = [self.graph.node[n]['weight']*1250.0/self.avg_count for n in self.graph.nodes_iter()]
-        print node_size
+        #print node_size
         node_color = [self.graph.node[n]['color'] for n in self.graph.nodes_iter()]
 
         # get edge size and color
         edge_size = [self.graph.edge[s][d]['weight']*4.0/self.avg_edge_count for s,d in self.graph.edges_iter()]
-        print edge_size
+        #print edge_size
         edge_color = [self.graph.edge[s][d]['color'] for s,d in self.graph.edges_iter()]
 
         pos = nx_custom_layout.nx_custom_layout(self.graph)
@@ -258,7 +269,7 @@ class ClientUserGUI(QtGui.QWidget):
     def rotate_to_value(self, f_value):
         '''旋转至某一positive数值, 从0至1.0'''
         angle = (f_value - 0.5) * 180.0
-        print 'new angle = %f' % angle
+        #print 'new angle = %f' % angle
         #TODO:有空搞点延迟效果
         # for i in range(5, 0, -1):
         #     swing_angle = (random.random() - 0.5) * i * 2

@@ -32,6 +32,8 @@ while True:
     #     d.clear()
     elif text == 'start':
         s.echo_only = False     #关闭echo only，正式开始记录
+        print 'Fi'
+        text = raw_input('[RUNNING]`start` to start listening, `stop`: to stop listening :')
     else:
         text = raw_input('[RUNNING]`start` to start listening, `stop`: to stop listening :')
 
