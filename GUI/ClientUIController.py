@@ -132,6 +132,11 @@ class ClientUIController(QtGui.QWidget):
 
     def put_stat_data(self, statDataDict):
         # 统计信息
+        if statDataDict is None:
+            self.summary_UI.clear()
+            print 'Clear Summary UI'
+            return
+
         p_length = len(statDataDict)
         if p_length < 1:
             print '[ERROR] NO VALID PARTICIPANT'
@@ -140,18 +145,27 @@ class ClientUIController(QtGui.QWidget):
             if not self.has_client(ip):
                 self.add_client(ip, nickname=p.nickname)
                 print 'Participant %s added.' % ip
-        self.summary_UI.make_graph(statDataDict)
-        self.summary_UI.draw_graph()
+        #self.summary_UI.make_graph(statDataDict)
+        #self.summary_UI.draw_graph()
+        self.summary_UI.make_graph_thread(statDataDict)
 
     def put_incr_data(self, incrData):
         # 增量信息
+        if incrData is None:
+            # 收到空信息，重置!
+            for ip, client_ui in self.client_UIs.iteritems():
+                client_ui.clear()
+                print 'Clear User UI'
+            return
+
         ip = incrData.ip
         pos_val = incrData.pos_val
         timestamp = incrData.timestamp
         print 'emo_val=%f' % pos_val
         self.client_UIs[ip].rotate_to_value(pos_val)
         self.client_UIs[ip].append_emo_state(timestamp, pos_val)
-        self.client_UIs[ip].plot_timeline()
+        #self.client_UIs[ip].plot_timeline()
+        self.client_UIs[ip].plot_timeline_thread()
 
     #ABANDONED
     def put_data(self, participants):

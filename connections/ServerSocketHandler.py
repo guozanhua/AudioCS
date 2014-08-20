@@ -7,6 +7,7 @@ from utils import DataTypeHandler
 from utils.parsers import EventXMLParser, BooleanClsParser, StreamDataParser, osc_message
 from models import UniteModel, BinaryData
 import cPickle
+from models.netdata import HugePackage
 
 class ServerUDPReceiver(threading.Thread):
 
@@ -85,14 +86,32 @@ class ServerUDPSender(threading.Thread):
                 continue
             hugePkg = self.importQueue.get()
             print 'I`ve got something...'
-            for ip in hugePkg.statDataDict:
+
+            if isinstance(hugePkg, HugePackage):
+                for ip in hugePkg.statDataDict:
                 #建立Socket连接，发还数据给客户端
                 #p = participants[ip]
-                address = (ip, self.targetPort)
-                s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-                p_pickle = cPickle.dumps(hugePkg)  #用cPickle序列化,发送所有人的资料！
-                s.sendto(p_pickle, address)
-                s.close()
+                    address = (ip, self.targetPort)
+                    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                    p_pickle = cPickle.dumps(hugePkg)  #用cPickle序列化,发送所有人的资料！
+                    s.sendto(p_pickle, address)
+                    s.close()
+            elif isinstance(hugePkg, list):
+                print 'Sending restart package to everyone...'
+                for ip in hugePkg:
+                    print ip
+                    fakePkg = HugePackage(None, None)
+                    address = (ip, self.targetPort)
+                    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                    p_pickle = cPickle.dumps(fakePkg)  #用cPickle序列化,发送所有人的资料！
+                    s.sendto(p_pickle, address)
+                    s.sendto(p_pickle, address)
+                    s.sendto(p_pickle, address)
+                    s.close()
+            else:
+                print 'ServerUDPSender: what`s this shit?!'
+
+
 
 
 

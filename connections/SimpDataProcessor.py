@@ -10,6 +10,7 @@ from models.netdata import PStatData, PIncrData, HugePackage
 from models.ConvContent import *
 from utils.LogHandler import LogFileHandler
 from utils.ConfigHandler import get_nicknames
+import time
 
 class SimpleDataProcessor(threading.Thread):
 
@@ -21,6 +22,29 @@ class SimpleDataProcessor(threading.Thread):
         self.participants = {}  # 所有参与者的Hash表(IP, PStatData)
         self.nicknames = get_nicknames() # {IP , Nickname}
         self.logHandler = LogFileHandler()
+
+    def restart(self):
+        # 重启，发送重启包给客户端
+        self.shouldStop = True
+        print 'SimpleDataProcessor restarting...'
+
+        for ip, statdata in self.participants.iteritems():
+            self.participants[ip].posCount = 0
+            self.participants[ip].negCount = 0
+            self.participants[ip].conv = {}
+
+
+        time.sleep(2)
+        self.clear()
+        self.logHandler.close_file()
+        self.logHandler = LogFileHandler()  # restart log file
+
+
+        # Send restart package to clients
+        hugePkg = HugePackage(None, self.participants)
+        self.exportQueue.put(hugePkg)
+
+        print 'SimpleDataProcessor restarted.'
 
     def run(self):
         lastIP = None  # 上一个发送者的IP
@@ -103,7 +127,7 @@ class SimpleDataProcessor(threading.Thread):
             lastIP = ip     # Update lastIP to current ip
 
     def clear(self):
-        self.participants.clear()
+        #self.participants.clear()
         self.importQueue.queue.clear()
         self.exportQueue.queue.clear()
 

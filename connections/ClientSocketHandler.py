@@ -21,8 +21,6 @@ class ClientSocketReceiver(threading.Thread):
         while not self.should_stop:
             data, srcAddr = self.udpClientServ.recvfrom(self.BUFFERSIZE)
             print 'Received data from %s' %str(srcAddr[0])
-
-
             hugePkg = cPickle.loads(data)  #INFO:收到的是所有人的数据
             #print participants
             self.exportQueue.put(hugePkg)

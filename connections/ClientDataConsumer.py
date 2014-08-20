@@ -26,8 +26,8 @@ class ClientQtDataConsumer(QtCore.QThread):
             hugePkg = self.inQueue.get()
             #self.data_got.emit(participants)    # emit!!!
             incrData = hugePkg.incrData
-            if incrData is not None:
-                self.incr_data_got.emit(incrData)
+            # if incrData is not None:
+            self.incr_data_got.emit(incrData)
 
             statDataDict = hugePkg.statDataDict
             self.stat_data_got.emit(statDataDict)

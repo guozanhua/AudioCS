@@ -21,20 +21,30 @@ s_send = ServerSocketHandler.ServerUDPSender(outQueue)
 s_send.start()
 
 
-text = raw_input('[RUNNING]`start` to start listening, `stop`: to stop listening :')
+text = raw_input('[RUNNING]`s` to start listening, `q` to stop listening, `r` to restart server :')
 while True:
-    if text == 'stop':
+    if text == 'q':
         s.stop()
         d.stop()
         s_send.stop()
         sys.exit(0)
     # elif text == 'clear':
     #     d.clear()
-    elif text == 'start':
+    elif text == 's':
         s.echo_only = False     #关闭echo only，正式开始记录
-        print 'Fi'
-        text = raw_input('[RUNNING]`start` to start listening, `stop`: to stop listening :')
+        print 'Server fully started...'
+        text = raw_input('[RUNNING]`s` to start listening, `q` to stop listening, `r` to restart server :')
+
+    elif text == 'r':
+        # reboot
+        print '=========== SERVER RESTARTED =========='
+        s.echo_only = True
+        d.restart()
+
+        d = SimpDataProcessor.SimpleDataProcessor(inQueue, outQueue)
+        d.start()
+        text = raw_input('[RUNNING]`s` to start listening, `q` to stop listening, `r` to restart server :')
     else:
-        text = raw_input('[RUNNING]`start` to start listening, `stop`: to stop listening :')
+        text = raw_input('[RUNNING]`s` to start listening, `q` to stop listening, `r` to restart server :')
 
 
