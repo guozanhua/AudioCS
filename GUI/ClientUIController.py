@@ -67,7 +67,7 @@ class ClientUIController(QtGui.QWidget):
         # 开启各种线程
 
         text, ok = QtGui.QInputDialog.getText(self, 'Input your current ip address'
-                                     , self.socket_text , text='10.214.143.')
+                                     , self.socket_text, text='10.214.143.')
         if ok:
             ip = text
         else:

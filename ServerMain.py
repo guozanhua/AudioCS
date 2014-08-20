@@ -21,7 +21,7 @@ s_send = ServerSocketHandler.ServerUDPSender(outQueue)
 s_send.start()
 
 
-text = raw_input('[RUNNING]`start` to start listening，`stop`: to stop listening')
+text = raw_input('[RUNNING]`start` to start listening, `stop`: to stop listening :')
 while True:
     if text == 'stop':
         s.stop()
@@ -33,6 +33,6 @@ while True:
     elif text == 'start':
         s.echo_only = False     #关闭echo only，正式开始记录
     else:
-        text = raw_input('[RUNNING]`start` to start listening, `stop`: to stop listening:')
+        text = raw_input('[RUNNING]`start` to start listening, `stop`: to stop listening :')
 
 

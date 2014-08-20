@@ -33,7 +33,7 @@ class ClientSummaryGUI(QtGui.QWidget):
 
 
         self.figure_widget = matplotlibWidget(self, figsize=(5.0, 3.8), dpi=10)
-        self.figure_widget.setGeometry(0, 0, 500, 380)
+        #self.figure_widget.setGeometry(0, 0, 500, 380)
         self.figure_widget.hide()
 
         self.graph = nx.Graph()  # DiGraph
