@@ -152,9 +152,9 @@ class ClientUIController(QtGui.QWidget):
                 self.add_client(ip, nickname=p.nickname)
                 print 'Participant %s added.' % ip
 
-        #self.summary_UI.make_graph(statDataDict)
-        #self.summary_UI.draw_graph()
-        self.summary_UI.make_graph_thread(statDataDict)
+        self.summary_UI.make_graph(statDataDict)
+        self.summary_UI.draw_graph()
+        #self.summary_UI.make_graph_thread(statDataDict)
 
     def put_incr_data(self, incrData):
         # 增量信息
