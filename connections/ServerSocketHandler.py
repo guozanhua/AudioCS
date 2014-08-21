@@ -105,8 +105,6 @@ class ServerUDPSender(threading.Thread):
                     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
                     p_pickle = cPickle.dumps(fakePkg)  #用cPickle序列化,发送所有人的资料！
                     s.sendto(p_pickle, address)
-                    s.sendto(p_pickle, address)
-                    s.sendto(p_pickle, address)
                     s.close()
             else:
                 print 'ServerUDPSender: what`s this shit?!'

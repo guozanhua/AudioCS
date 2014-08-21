@@ -5,7 +5,7 @@ import datetime
 class LogFileHandler:
     def __init__(self, path=None):
         if None == path:
-            path = time.strftime('%Y%m%d%H%M%S') + '_log.log'
+            path = 'log/' + time.strftime('%Y%m%d%H%M%S') + '_log.log'
         self.path = path
         self.file = open(path, 'a')  # a+ 以读写方式打开文件，并把文件指针移到文件尾。
         print 'Log file created. %s' % path

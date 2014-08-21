@@ -24,13 +24,18 @@ class ClientQtDataConsumer(QtCore.QThread):
 
             #TODO 20140819 在这里处理数据，然后emit!
             hugePkg = self.inQueue.get()
+            statDataDict = hugePkg.statDataDict
+            self.stat_data_got.emit(statDataDict)       #注意先后顺序！
             #self.data_got.emit(participants)    # emit!!!
             incrData = hugePkg.incrData
-            # if incrData is not None:
-            self.incr_data_got.emit(incrData)
+            if incrData is not None:
+                self.incr_data_got.emit(incrData)
+            elif statDataDict is None:
+                self.incr_data_got.emit(incrData)
 
-            statDataDict = hugePkg.statDataDict
-            self.stat_data_got.emit(statDataDict)
+
+
+
 
 
     def stop(self):

@@ -14,12 +14,12 @@ import time
 
 class SimpleDataProcessor(threading.Thread):
 
-    def __init__(self, importQueue, exportQueue):
+    def __init__(self, importQueue, exportQueue, participants={}):
         threading.Thread.__init__(self)
         self.importQueue = importQueue
         self.exportQueue = exportQueue
         self.shouldStop = False
-        self.participants = {}  # 所有参与者的Hash表(IP, PStatData)
+        self.participants = participants  # 所有参与者的Hash表(IP, PStatData)
         self.nicknames = get_nicknames() # {IP , Nickname}
         self.logHandler = LogFileHandler()
 
@@ -32,7 +32,7 @@ class SimpleDataProcessor(threading.Thread):
             self.participants[ip].posCount = 0
             self.participants[ip].negCount = 0
             self.participants[ip].conv = {}
-
+        ips = [ip for ip, data in self.participants.iteritems()]
 
         time.sleep(2)
         self.clear()
@@ -41,8 +41,10 @@ class SimpleDataProcessor(threading.Thread):
 
 
         # Send restart package to clients
+        frontPkg = ips
         hugePkg = HugePackage(None, self.participants)
-        self.exportQueue.put(hugePkg)
+        self.exportQueue.put(frontPkg)
+        #self.exportQueue.put(hugePkg)
 
         print 'SimpleDataProcessor restarted.'
 

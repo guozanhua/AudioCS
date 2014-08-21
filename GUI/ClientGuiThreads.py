@@ -11,15 +11,15 @@ from GUI import nx_custom_layout
 
 class GraphMakeThread(QtCore.QThread):
     #mutex = threading.Lock()
-    graph_done = QtCore.pyqtSignal()    #绘图完成的信号
+    graph_done = QtCore.pyqtSignal(object)    #绘图完成的信号
 
-    def __init__(self, mutex, node_labels, graph, avg_count, avg_edge_count, statDataDict):
+    def __init__(self, mutex, node_labels, graph, var_list, statDataDict):
         QtCore.QThread.__init__(self)
         self.mutex = mutex
         self.node_labels = node_labels
         self.graph = graph
-        self.avg_count = avg_count
-        self.avg_edge_count = avg_edge_count
+        self.var_list = var_list    # [avg_count, avg_edge_count]
+        #self.avg_edge_count = avg_edge_count
         self.statDataDict = statDataDict
 
     def run(self):
@@ -30,6 +30,9 @@ class GraphMakeThread(QtCore.QThread):
         edge_count = 0
         edge_total = 0
         edge_weight = {}      # {src_ip, {dst_ip, weight}}   务必遵循src_ip < dst_ip!!!
+
+        #self.graph = nx.Graph()
+
 
         for ip, p in self.statDataDict.iteritems():
 
@@ -67,16 +70,16 @@ class GraphMakeThread(QtCore.QThread):
                     edge_count += 1
                     edge_total += conv_count
                     self.graph.add_edge(src_ip, dst_ip, weight=conv_count, color=ClientGUI.COLOR_MAP_EDGE[count % 6])
-                    count += 1
+            count += 1
 
         if count != 0 and total != 0:
-            self.avg_count = float(total)/float(count)
+            self.var_list[0] = float(total)/ float(count)
         if edge_count != 0 and edge_total != 0:
-            self.avg_edge_count = float(edge_total) /float(edge_count)
+            self.var_list[1] = float(edge_total)/ float(edge_count)
+
 
         self.mutex.release()
-
-        self.graph_done.emit()
+        self.graph_done.emit(self.var_list)
 
 class TimelinePlotThread(QtCore.QThread):
     mutex = threading.Lock()
@@ -100,19 +103,18 @@ class TimelinePlotThread(QtCore.QThread):
         str_io_buf = cStringIO.StringIO()
         self.figure_widget.saveFig(str_io_buf)
 
-        self.mutex.release()
-
         self.img_data_got.emit(str_io_buf)
+        self.mutex.release()
 
 class GraphDrawThread(QtCore.QThread):
     graph_data_got = QtCore.pyqtSignal(object)      # 网络节点绘制完成，emit个数据过去
 
-    def __init__(self, mutex, graph, avg_count, avg_edge_count, figure_widget, node_labels):
+    def __init__(self, mutex, graph, var_list, figure_widget, node_labels):
         QtCore.QThread.__init__(self)
         self.mutex = mutex
         self.graph = graph
-        self.avg_count = avg_count
-        self.avg_edge_count = avg_edge_count
+        self.avg_count = var_list[0]
+        self.avg_edge_count = var_list[1]
         self.figure_widget = figure_widget
         self.node_labels = node_labels
 
@@ -143,6 +145,7 @@ class GraphDrawThread(QtCore.QThread):
         nx.draw_networkx_nodes(self.graph, pos, node_size=node_size_3, node_color=node_color,
                                ax=self.figure_widget.canvas.ax, linewidths=0.0, alpha=0.15)
 
+        #print self.node_labels
         nx.draw_networkx_labels(self.graph, pos, ax=self.figure_widget.canvas.ax, labels=self.node_labels)
         for i in range(0, len(edge_size)):
             #Draw edge with different width
@@ -156,6 +159,5 @@ class GraphDrawThread(QtCore.QThread):
         str_io_buffer = cStringIO.StringIO()
         self.figure_widget.saveFig(str_io_buffer)
 
-        self.mutex.release()
-
         self.graph_data_got.emit(str_io_buffer)
+        self.mutex.release()

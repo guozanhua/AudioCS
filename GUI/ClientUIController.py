@@ -23,6 +23,7 @@ class ClientUIController(QtGui.QWidget):
         QtGui.QWidget.__init__(self)
         self.num_clients = 0
         self.client_UIs = {}    # One UI for each user, {IP, ui}
+        self.server_ip = '192.168.0.228'
 
 
         self.screen_resolution = (GetSystemMetrics(0), GetSystemMetrics(1))
@@ -96,11 +97,10 @@ class ClientUIController(QtGui.QWidget):
                                      , 'Input SERVER ip address, it`s NOT your own ip...'
                                 , text='10.214.143.220')
         if ok:
-            ip = text
-        else:
-            ip = '10.214.143.220'
-        print 'Server IP address set to: %s' %ip
-        self.send_echo_to_server(server_ip=text)
+            self.server_ip = text
+
+        print 'Server IP address set to: %s' %self.server_ip
+        self.send_echo_to_server(server_ip=self.server_ip)
 
 
     def send_echo_to_server(self, server_ip):
@@ -133,8 +133,14 @@ class ClientUIController(QtGui.QWidget):
     def put_stat_data(self, statDataDict):
         # 统计信息
         if statDataDict is None:
-            self.summary_UI.clear()
+            #self.summary_UI.clear()
             print 'Clear Summary UI'
+            self.summary_UI.hide()
+            self.summary_UI = ClientSummaryGUI(init_position=
+                                           (self.screen_resolution[0]*0.67, self.screen_resolution[1]*0.59))  # Summary UI
+            self.summary_UI.show()
+            self.send_echo_to_server(self.server_ip)
+            print 'Echo...'
             return
 
         p_length = len(statDataDict)
@@ -145,6 +151,7 @@ class ClientUIController(QtGui.QWidget):
             if not self.has_client(ip):
                 self.add_client(ip, nickname=p.nickname)
                 print 'Participant %s added.' % ip
+
         #self.summary_UI.make_graph(statDataDict)
         #self.summary_UI.draw_graph()
         self.summary_UI.make_graph_thread(statDataDict)
@@ -154,8 +161,12 @@ class ClientUIController(QtGui.QWidget):
         if incrData is None:
             # 收到空信息，重置!
             for ip, client_ui in self.client_UIs.iteritems():
+                # client_ui.hide()
                 client_ui.clear()
                 print 'Clear User UI'
+            #self.client_UIs = {}
+            #self.num_clients = 0
+
             return
 
         ip = incrData.ip

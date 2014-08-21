@@ -71,6 +71,7 @@ class ClientSummaryGUI(QtGui.QWidget):
         self.figure_cus_label.setGeometry(0, 0, 500, 380)
         self.figure_cus_label.show()
 
+
     def have_node(self, name):
         return name in self.graph.nodes()
 
@@ -79,14 +80,16 @@ class ClientSummaryGUI(QtGui.QWidget):
         return self.graph.nodes().index(ip)
 
     def make_graph_thread(self, statDataDict):
+        var_list = [self.avg_count, self.avg_edge_count]
         graph_thread = GraphMakeThread(self.summaryGUImutex, self.node_labels, self.graph,
-                                       self.avg_count, self.avg_edge_count, statDataDict)
+                                       var_list, statDataDict)
         graph_thread.graph_done.connect(self.draw_graph_thread)
+        #graph_thread.graph_done.connect(self.draw_graph)
         graph_thread.run()
 
 
     def make_graph(self, statDataDict):
-        # 此函数即将弃用，使用make_graph_thread代替
+
 
         # 根据participants绘制网络图
         #empty_node_count = 0
@@ -95,6 +98,8 @@ class ClientSummaryGUI(QtGui.QWidget):
         edge_count = 0
         edge_total = 0
         edge_weight = {}      # {src_ip, {dst_ip, weight}}   务必遵循src_ip < dst_ip!!!
+
+        #self.graph.remove_edges_from(self.graph.edges())
 
         for ip, p in statDataDict.iteritems():
 
@@ -132,22 +137,27 @@ class ClientSummaryGUI(QtGui.QWidget):
                     edge_count += 1
                     edge_total += conv_count
                     self.graph.add_edge(src_ip, dst_ip, weight=conv_count, color=COLOR_MAP_EDGE[count % 6])
-                    count += 1
+            count += 1
 
         if count != 0 and total != 0:
             self.avg_count = float(total)/float(count)
         if edge_count != 0 and edge_total != 0:
             self.avg_edge_count = float(edge_total) /float(edge_count)
-
+        #print edge_weight
+        #print self.graph.edges()
         return self.graph
 
 
-    def draw_graph(self):
+    def draw_graph(self, var_list = None):
         '''使用networkx绘制网络图 若使用None参数则绘制self.graph'''
         #print self.graph.nodes()
+        if var_list is not None:
+            self.avg_edge_count = var_list[1]
+            self.avg_count = var_list[0]
+
         if time.time() - self.last_draw_time < 1.0:
             return      #绘图间隔小于1秒的，忽略本次绘图
-
+        #print '%f, %f' % (self.avg_count, self.avg_edge_count)
         # get node size and color
         node_size = [self.graph.node[n]['weight']*450.0/self.avg_count for n in self.graph.nodes_iter()]
         node_size_2 = [self.graph.node[n]['weight']*750.0/self.avg_count for n in self.graph.nodes_iter()]
@@ -165,6 +175,8 @@ class ClientSummaryGUI(QtGui.QWidget):
         self.figure_widget.clear()
         # nx.draw_networkx(self.graph, pos=pos, ax=self.figure_widget.canvas.ax, node_size=node_size, node_color=node_color
         #          , edge_color=edge_color)
+
+
         nx.draw_networkx_nodes(self.graph, pos, node_size=node_size, node_color=node_color,
                                ax=self.figure_widget.canvas.ax, linewidths=0.0, alpha=0.55)
 
@@ -174,6 +186,8 @@ class ClientSummaryGUI(QtGui.QWidget):
         nx.draw_networkx_nodes(self.graph, pos, node_size=node_size_3, node_color=node_color,
                                ax=self.figure_widget.canvas.ax, linewidths=0.0, alpha=0.15)
 
+        #print self.node_labels
+        #print self.graph.nodes()
         nx.draw_networkx_labels(self.graph, pos, ax=self.figure_widget.canvas.ax, labels=self.node_labels)
         for i in range(0, len(edge_size)):
             #Draw edge with different width
@@ -191,11 +205,15 @@ class ClientSummaryGUI(QtGui.QWidget):
 
         self.last_draw_time = time.time()
 
-    def draw_graph_thread(self):
+    def draw_graph_thread(self, var_list=None):
+        if var_list is not None:
+            self.avg_edge_count = var_list[1]
+            self.avg_count = var_list[0]
         if time.time() - self.last_draw_time < 0.5:
             return      #绘图间隔小于1秒的，忽略本次绘图
-        th = GraphDrawThread(self.summaryGUImutex, self.graph, self.avg_count,
-                             self.avg_edge_count, self.figure_widget, self.node_labels)
+        var_list = [self.avg_count, self.avg_edge_count]
+        th = GraphDrawThread(self.summaryGUImutex, self.graph, var_list
+                             , self.figure_widget, self.node_labels)
         th.graph_data_got.connect(self.draw_graph_data_got)
         th.run()
 
@@ -258,6 +276,7 @@ class ClientUserGUI(QtGui.QWidget):
         self.figure_cus_label = MatPlotLabel(self)
         self.figure_cus_label.setGeometry(17, 44, 194, 39)
         self.figure_cus_label.show()
+        self.rotate_to_value(0.5)
 
     def append_emo_state(self, timestamp, value):
         # 在时间序列里把新的情感状态及对应的时间加进去
@@ -326,6 +345,7 @@ class ClientUserGUI(QtGui.QWidget):
 
     def rotate_to_value(self, f_value):
         '''旋转至某一positive数值, 从0至1.0'''
+
         angle = (f_value - 0.5) * 180.0
         #print 'new angle = %f' % angle
         #TODO:有空搞点延迟效果

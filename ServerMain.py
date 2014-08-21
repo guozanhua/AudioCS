@@ -40,7 +40,7 @@ while True:
         print '=========== SERVER RESTARTED =========='
         s.echo_only = True
         d.restart()
-
+        #old_participants = d.participants
         d = SimpDataProcessor.SimpleDataProcessor(inQueue, outQueue)
         d.start()
         text = raw_input('[RUNNING]`s` to start listening, `q` to stop listening, `r` to restart server :')
