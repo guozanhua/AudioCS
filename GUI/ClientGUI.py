@@ -7,6 +7,7 @@ from Widgets.MetreHandLabel import MetreHandLabel
 from Widgets.MatPlotLabel import MatPlotLabel
 from GUI.Widgets.matplotlibWidgetFile import matplotlibWidget
 from ClientGuiThreads import GraphMakeThread, TimelinePlotThread, GraphDrawThread
+from models.netdata import PStatData
 import networkx as nx
 from GUI import nx_custom_layout
 import time
@@ -79,6 +80,28 @@ class ClientSummaryGUI(QtGui.QWidget):
         # 根据ip查找节点序号
         return self.graph.nodes().index(ip)
 
+    def debug_make_participants(self):
+        pars = {}
+
+        p1 = PStatData('AAA')
+        p1.posCount = 345
+        pars['AAA'] = p1
+
+        p2 = PStatData('BBB')
+        p2.negCount = 346
+        pars['BBB'] = p2
+
+        p3 = PStatData('CCC')
+        p3.posCount = 307
+        pars['CCC'] = p3
+
+        p4 = PStatData('DDD')
+        p4.posCount = 234
+        pars['DDD'] = p4
+
+        self.make_graph(pars)
+        self.draw_graph()
+
     def make_graph_thread(self, statDataDict):
         var_list = [self.avg_count, self.avg_edge_count]
         graph_thread = GraphMakeThread(self.summaryGUImutex, self.node_labels, self.graph,
@@ -102,8 +125,8 @@ class ClientSummaryGUI(QtGui.QWidget):
         #self.graph.remove_edges_from(self.graph.edges())
 
         for ip, p in statDataDict.iteritems():
-
-            node_weight = p.posCount + p.negCount
+            t_count = p.posCount + p.negCount
+            node_weight = t_count * t_count
             total += node_weight
             # Add node label if available
             if p.nickname is not None:
@@ -159,9 +182,12 @@ class ClientSummaryGUI(QtGui.QWidget):
             return      #绘图间隔小于1秒的，忽略本次绘图
         #print '%f, %f' % (self.avg_count, self.avg_edge_count)
         # get node size and color
-        node_size = [self.graph.node[n]['weight']*450.0/self.avg_count for n in self.graph.nodes_iter()]
-        node_size_2 = [self.graph.node[n]['weight']*750.0/self.avg_count for n in self.graph.nodes_iter()]
-        node_size_3 = [self.graph.node[n]['weight']*1250.0/self.avg_count for n in self.graph.nodes_iter()]
+        node_size = [self.graph.node[n]['weight']*450.0/(self.avg_count * 0.33) for n in self.graph.nodes_iter()]
+        #node_size = [(self.graph.node[n]['weight']-(self.avg_count * 0.125))*5.0 for n in self.graph.nodes_iter()]
+        node_size_2 = [self.graph.node[n]['weight']*750.0/(self.avg_count * 0.33) for n in self.graph.nodes_iter()]
+        #node_size_2 = [(self.graph.node[n]['weight']-(self.avg_count * 0.125))*10.0 for n in self.graph.nodes_iter()]
+        node_size_3 = [self.graph.node[n]['weight']*1250.0/(self.avg_count * 0.33) for n in self.graph.nodes_iter()]
+        #node_size_3 = [(self.graph.node[n]['weight']-(self.avg_count * 0.125))*15.0 for n in self.graph.nodes_iter()]
         #print node_size
         node_color = [self.graph.node[n]['color'] for n in self.graph.nodes_iter()]
 
@@ -374,9 +400,10 @@ if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
     #qb = ClientUserGUI()
     qb = ClientSummaryGUI()
-    #qb.show()
-    qa = ClientUserGUI()
-    qa.show()
+    qb.show()
+    qb.debug_make_participants()
+    #qa = ClientUserGUI()
+    #qa.show()
     sys.exit(app.exec_())
 
 
